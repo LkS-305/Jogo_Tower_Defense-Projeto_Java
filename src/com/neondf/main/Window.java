@@ -4,24 +4,36 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Classe responsável por criar e configurar a janela principal do jogo.
- * Ela recebe o objeto Game (que é o Canvas onde desenhamos) e o exibe na tela.
+ * Janela principal do jogo Neon Defense.
+ * Responsável por exibir o Canvas e registrar os listeners globais.
  */
 public class Window {
 
     public Window(int width, int height, String title, Game game) {
-        JFrame frame = new JFrame(title); // cria a janela
-        frame.setPreferredSize(new Dimension(width, height)); // define tamanho
+        JFrame frame = new JFrame(title);
+
+        frame.setPreferredSize(new Dimension(width, height));
         frame.setMaximumSize(new Dimension(width, height));
         frame.setMinimumSize(new Dimension(width, height));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+        frame.setLocationRelativeTo(null);
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // fecha ao clicar no X
-        frame.setResizable(false); // não deixa redimensionar
-        frame.setLocationRelativeTo(null); // centraliza na tela
-        frame.add(game); // adiciona o Canvas (onde o jogo desenha)
-        frame.pack(); // ajusta tudo direitinho
-        frame.setVisible(true); // mostra a janela
+        // Adiciona o Canvas do jogo
+        frame.add(game);
+        frame.pack();
+        frame.setVisible(true);
 
-        game.start(); // inicia o loop do jogo
+        // Garante foco de input no Canvas
+        game.setFocusable(true);
+        game.requestFocusInWindow();
+        game.requestFocus();
+
+        // 🚀 Registra o listener de mouse DIRETAMENTE NA JANELA
+        InputHandler handler = new InputHandler(game.getTower(), game);
+        frame.addMouseMotionListener(handler);
+
+        // Inicia o loop do jogo
+        game.start();
     }
 }

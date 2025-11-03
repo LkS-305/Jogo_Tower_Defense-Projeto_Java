@@ -2,36 +2,32 @@ package com.neondf.entities;
 
 import java.awt.*;
 
-/**
- * Representa uma bala disparada pela torre.
- * Move-se em linha reta na direção do cursor e desaparece ao sair da tela.
- */
 public class Bullet {
-    private double x, y;      // posição atual
-    private double velX, velY; // velocidade
-    private final int size = 6;
-    private boolean alive = true; // se ainda está na tela
 
-    public Bullet(double x, double y, double velX, double velY) {
+    private double x, y;
+    private double angle;
+    private double speed = 6;
+    private boolean alive = true;
+
+    public Bullet(double x, double y, double angle) { // ✅ Construtor adicionado
         this.x = x;
         this.y = y;
-        this.velX = velX;
-        this.velY = velY;
+        this.angle = angle;
     }
 
     public void tick() {
-        x += velX;
-        y += velY;
+        x += Math.cos(angle) * speed;
+        y += Math.sin(angle) * speed;
 
-        // Se sair da tela, morre
-        if (x < -50 || y < -50 || x > 850 || y > 650) {
+        // Remove se sair da tela
+        if (x < -10 || x > 820 || y < -10 || y > 620) {
             alive = false;
         }
     }
 
     public void render(Graphics2D g) {
         g.setColor(Color.CYAN);
-        g.fillOval((int) x, (int) y, size, size);
+        g.fillOval((int) x, (int) y, 6, 6);
     }
 
     public boolean isAlive() {
@@ -39,11 +35,10 @@ public class Bullet {
     }
 
     public double getX() {
-    return x;
-}
+        return x;
+    }
 
-public double getY() {
-    return y;
-}
-
+    public double getY() {
+        return y;
+    }
 }

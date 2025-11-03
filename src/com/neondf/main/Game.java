@@ -1,37 +1,47 @@
 package com.neondf.main;
 
 import com.neondf.entities.*;
-import com.neondf.systems.WaveManager;
+import com.neondf.systems.*;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Random;
 
-public class Game extends Canvas implements Runnable {
+public class Game extends Canvas implements Runnable, KeyListener {
 
     private Thread thread;
     private boolean running = false;
+
+    private enum STATE { MENU, PLAYING, GAME_OVER }
+    private STATE gameState = STATE.MENU;
 
     private Tower tower;
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private WaveManager waveManager;
-    private Random random = new Random();
+    private HUD hud;
+
+    private boolean up, down, left, right;
 
     public Game() {
         setPreferredSize(new Dimension(800, 600));
+        addKeyListener(this);
 
         tower = new Tower(370, 270);
-        addMouseMotionListener(new InputHandler(tower));
-
         waveManager = new WaveManager(enemies);
+        hud = new HUD();
+
+        setFocusable(true);
+        requestFocusInWindow();
+        requestFocus();
     }
 
-    // ==========================
-    // MÉTODOS DE CONTROLE DO LOOP
-    // ==========================
+    // ==============================
+    // CONTROLE DO LOOP
+    // ==============================
 
     public synchronized void start() {
         if (running) return;
@@ -43,107 +53,126 @@ public class Game extends Canvas implements Runnable {
     public synchronized void stop() {
         if (!running) return;
         running = false;
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        try { thread.join(); } catch (InterruptedException e) { e.printStackTrace(); }
     }
 
-    // ==========================
-    // ATUALIZAÇÃO DO JOGO (LÓGICA)
-    // ==========================
+    // ==============================
+    // LÓGICA PRINCIPAL
+    // ==============================
 
     private void tick() {
-        tower.tick();
+        if (gameState == STATE.MENU) return;
+        if (gameState == STATE.GAME_OVER) return;
 
-        // === Sistema de tiro ===
+        // Atualiza direção da torre
+        tower.updateDirection(up, down, left, right);
+
+        tower.tick();
+        hud.tick();
+        hud.setWave(waveManager.getCurrentWave());
+
+        // Tiro automático
         Bullet newBullet = tower.tryShoot();
         if (newBullet != null) bullets.add(newBullet);
 
-        Iterator<Bullet> bulletIt = bullets.iterator();
-        while (bulletIt.hasNext()) {
-            Bullet b = bulletIt.next();
+        // Balas
+        bullets.removeIf(b -> {
             b.tick();
-            if (!b.isAlive()) bulletIt.remove();
-        }
+            return !b.isAlive();
+        });
 
-        // === Sistema de waves ===
+        // Waves
         waveManager.tick();
 
-        // === Atualiza inimigos ===
+        // Inimigos
         Iterator<Enemy> enemyIt = enemies.iterator();
         while (enemyIt.hasNext()) {
             Enemy e = enemyIt.next();
             e.tick(tower.getCenterX(), tower.getCenterY());
 
-            // Checar colisão com balas
             for (Bullet b : bullets) {
                 Rectangle br = new Rectangle((int) b.getX(), (int) b.getY(), 6, 6);
                 if (br.intersects(e.getBounds())) {
                     e.kill();
-                }
+                    hud.addScore(10);
+                    hud.addCoin(); // 💠 drop de NeonCoin
+}
+
+            }
+
+            double dx = e.getX() - tower.getCenterX();
+            double dy = e.getY() - tower.getCenterY();
+            double dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 40) {
+                e.kill();
+                tower.takeDamage(10);
+                hud.damage(10);
+                if (tower.getHp() <= 0) gameState = STATE.GAME_OVER;
             }
 
             if (!e.isAlive()) enemyIt.remove();
         }
     }
 
-    // ==========================
-    // RENDERIZAÇÃO (DESENHO)
-    // ==========================
+    // ==============================
+    // RENDERIZAÇÃO
+    // ==============================
 
     private void render() {
         BufferStrategy bs = getBufferStrategy();
-        if (bs == null) {
-            createBufferStrategy(3);
-            return;
-        }
+        if (bs == null) { createBufferStrategy(3); return; }
 
         Graphics2D g = (Graphics2D) bs.getDrawGraphics();
 
-        // Fundo
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
 
-        // === Título central ===
-        g.setColor(Color.CYAN);
         g.setFont(new Font("Consolas", Font.BOLD, 32));
-        String title = "Neon Defense";
-        FontMetrics fm = g.getFontMetrics();
-        int textWidth = fm.stringWidth(title);
-        g.drawString(title, (getWidth() - textWidth) / 2, 50);
+        g.setColor(Color.CYAN);
 
-        // === Exibe wave atual ===
-        g.setFont(new Font("Consolas", Font.PLAIN, 18));
-        String waveText = "Wave " + waveManager.getCurrentWave();
-        g.drawString(waveText, 20, 80);
+        if (gameState == STATE.MENU) {
+            drawCenteredText(g, "Neon Defense", 200);
+            g.setFont(new Font("Consolas", Font.PLAIN, 22));
+            drawCenteredText(g, "Pressione ENTER para começar", 300);
+            drawCenteredText(g, "Use W, A, S, D para girar a torre", 340);
+        } 
+        else if (gameState == STATE.PLAYING) {
+            String title = "Neon Defense";
+            FontMetrics fm = g.getFontMetrics();
+            int textWidth = fm.stringWidth(title);
+            g.drawString(title, (getWidth() - textWidth) / 2, 50);
 
-        // === Renderiza Torre ===
-        tower.render(g);
+            tower.render(g);
+            for (Bullet b : bullets) b.render(g);
+            for (Enemy e : enemies) e.render(g);
 
-        // === Renderiza Balas ===
-        for (Bullet b : bullets) {
-            b.render(g);
-        }
-
-        // === Renderiza Inimigos ===
-        for (Enemy e : enemies) {
-            e.render(g);
+            hud.render(g);
+        } 
+        else if (gameState == STATE.GAME_OVER) {
+            drawCenteredText(g, "GAME OVER", 250);
+            g.setFont(new Font("Consolas", Font.PLAIN, 22));
+            g.setColor(Color.WHITE);
+            drawCenteredText(g, "Pressione R para reiniciar", 310);
         }
 
         g.dispose();
         bs.show();
     }
 
-    // ==========================
-    // LOOP PRINCIPAL
-    // ==========================
+    private void drawCenteredText(Graphics2D g, String text, int y) {
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(text);
+        g.drawString(text, (getWidth() - textWidth) / 2, y);
+    }
+
+    // ==============================
+    // LOOP
+    // ==============================
 
     @Override
     public void run() {
         long lastTime = System.nanoTime();
-        double nsPerTick = 1000000000.0 / 60.0;
+        double nsPerTick = 1_000_000_000.0 / 60.0;
         double delta = 0;
 
         while (running) {
@@ -162,9 +191,61 @@ public class Game extends Canvas implements Runnable {
         stop();
     }
 
-    // ==========================
-    // PONTO DE ENTRADA
-    // ==========================
+    // ==============================
+    // INPUT
+    // ==============================
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+
+        if (gameState == STATE.MENU && key == KeyEvent.VK_ENTER) {
+            resetGame();
+            gameState = STATE.PLAYING;
+        }
+
+        if (gameState == STATE.GAME_OVER && key == KeyEvent.VK_R) {
+            resetGame();
+            gameState = STATE.PLAYING;
+        }
+
+        if (gameState == STATE.PLAYING) {
+            if (key == KeyEvent.VK_W) up = true;
+            if (key == KeyEvent.VK_S) down = true;
+            if (key == KeyEvent.VK_A) left = true;
+            if (key == KeyEvent.VK_D) right = true;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        int key = e.getKeyCode();
+
+        if (key == KeyEvent.VK_W) up = false;
+        if (key == KeyEvent.VK_S) down = false;
+        if (key == KeyEvent.VK_A) left = false;
+        if (key == KeyEvent.VK_D) right = false;
+    }
+
+    @Override public void keyTyped(KeyEvent e) {}
+
+    // ==============================
+    // RESET
+    // ==============================
+
+    private void resetGame() {
+        bullets.clear();
+        enemies.clear();
+        tower = new Tower(370, 270);
+        waveManager = new WaveManager(enemies);
+        hud = new HUD();
+    }
+
+    public Tower getTower() { return tower; }
+
+    // ==============================
+    // MAIN
+    // ==============================
 
     public static void main(String[] args) {
         Game game = new Game();

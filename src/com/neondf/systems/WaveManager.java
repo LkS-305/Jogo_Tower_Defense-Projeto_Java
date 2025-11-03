@@ -4,65 +4,74 @@ import com.neondf.entities.Enemy;
 import java.util.ArrayList;
 import java.util.Random;
 
-/**
- * Gerencia as waves (fases) do jogo.
- * Controla a quantidade e velocidade dos inimigos que aparecem.
- */
 public class WaveManager {
 
     private int currentWave = 1;
-    private int enemiesToSpawn = 5;
-    private Random random = new Random();
-    private ArrayList<Enemy> enemies;
-
-    private int spawnTimer = 0;
+    private int enemiesToSpawn;
+    private int enemiesSpawned = 0;
+    private int enemiesAlive = 0;
+    private long lastSpawnTime = 0;
+    private long spawnInterval = 1200; // ms entre inimigos
+    private final ArrayList<Enemy> enemies;
+    private final Random random = new Random();
 
     public WaveManager(ArrayList<Enemy> enemies) {
         this.enemies = enemies;
+        enemiesToSpawn = 5;
     }
 
     public void tick() {
-        spawnTimer++;
+        long now = System.currentTimeMillis();
 
-        // Spawn a cada 60 ticks (~1 segundo)
-        if (spawnTimer >= 60) {
-            if (enemiesToSpawn > 0) {
-                spawnEnemy();
-                enemiesToSpawn--;
-            }
-            spawnTimer = 0;
+        // Spawna enquanto ainda há inimigos pra nascer
+        if (enemiesSpawned < enemiesToSpawn && now - lastSpawnTime >= spawnInterval) {
+            spawnEnemy();
+            enemiesSpawned++;
+            enemiesAlive++;
+            lastSpawnTime = now;
         }
 
-        // Quando todos morrerem e nenhum restar -> próxima wave
-        if (enemies.isEmpty() && enemiesToSpawn == 0) {
+        // Se acabou a wave
+        if (enemiesAlive <= 0 && enemiesSpawned >= enemiesToSpawn) {
             nextWave();
         }
     }
 
     private void spawnEnemy() {
-    int side = random.nextInt(4);
-    double x = 0, y = 0;
+        int x = 0, y = 0;
 
-    switch (side) {
-        case 0 -> { x = random.nextInt(780); y = -30; }     // topo
-        case 1 -> { x = 830; y = random.nextInt(580); }     // direita
-        case 2 -> { x = random.nextInt(780); y = 630; }     // baixo
-        case 3 -> { x = -30; y = random.nextInt(580); }     // esquerda
+        // Até a wave 5 → direções fixas N S L O
+        if (currentWave <= 5) {
+            int dir = enemiesSpawned % 4; // alterna direções
+            switch (dir) {
+                case 0 -> { x = 400; y = -30; } // Norte
+                case 1 -> { x = 400; y = 630; } // Sul
+                case 2 -> { x = 830; y = 300; } // Leste
+                case 3 -> { x = -30; y = 300; } // Oeste
+            }
+        } else {
+            // Depois da wave 5 → posições aleatórias nas bordas
+            int side = random.nextInt(4);
+            switch (side) {
+                case 0 -> { x = random.nextInt(800); y = -30; } // topo
+                case 1 -> { x = random.nextInt(800); y = 630; } // baixo
+                case 2 -> { x = -30; y = random.nextInt(600); } // esquerda
+                case 3 -> { x = 830; y = random.nextInt(600); } // direita
+            }
+        }
+
+        enemies.add(new Enemy(x, y, this));
     }
-
-    double speed = 1.0 + (currentWave * 0.2);
-    Enemy e = new Enemy(x, y, speed);
-    enemies.add(e);
-
-    // debug (pra testar)
-    System.out.println("Inimigo spawnado em (" + x + ", " + y + ")");
-}
-
 
     private void nextWave() {
         currentWave++;
-        enemiesToSpawn = 5 + (currentWave * 2); // mais inimigos por wave
-        System.out.println("Nova wave: " + currentWave);
+        enemiesToSpawn += 3; // aumenta progressivamente
+        enemiesSpawned = 0;
+        enemiesAlive = 0;
+    }
+
+    public void enemyDied() {
+        enemiesAlive--;
     }
 
     public int getCurrentWave() {

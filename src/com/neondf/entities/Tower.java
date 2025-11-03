@@ -3,29 +3,48 @@ package com.neondf.entities;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-/**
- * Representa a torre central controlada pelo jogador.
- * Ela vai ficar fixa no centro da tela e poderá rotacionar em direção ao mouse.
- */
 public class Tower {
 
-    private double x, y; // posição
-    private double angle; // rotação em radianos
-    private final int size = 60; // tamanho da torre
-    private long lastShotTime = 0;
-private long shootCooldown = 300; // tempo entre tiros em ms
-
+    private double x, y;           // posição top-left
+    private double angle = 0;      // ângulo atual (radianos)
+    private long lastShot = 0;
+    private int hp = 100;
+    private final int size = 50;   // largura/altura
 
     public Tower(double x, double y) {
         this.x = x;
         this.y = y;
-        this.angle = 0;
+    }
+
+    // mantém lógica do jogo (pode ficar vazia se não houver mais comportamento)
+    public void tick() {
+        // por enquanto não precisamos atualizar center aqui
     }
 
     public void setAngle(double angle) {
         this.angle = angle;
     }
 
+    public Bullet tryShoot() {
+        long now = System.currentTimeMillis();
+        if (now - lastShot >= 300) {
+            lastShot = now;
+            // cria a bala usando o centro calculado dinamicamente
+            return new Bullet(getCenterX(), getCenterY(), angle);
+        }
+        return null;
+    }
+
+    public void takeDamage(int amount) {
+        hp -= amount;
+        if (hp < 0) hp = 0;
+    }
+
+    public int getHp() {
+        return hp;
+    }
+
+    // calcula o centro dinamicamente -> evita depender de tick()
     public double getCenterX() {
         return x + size / 2.0;
     }
@@ -34,47 +53,52 @@ private long shootCooldown = 300; // tempo entre tiros em ms
         return y + size / 2.0;
     }
 
-    public void tick() {
-        // aqui depois adicionaremos tiro, upgrades etc.
-    }
-
-    public Bullet tryShoot() {
-    long now = System.currentTimeMillis();
-    if (now - lastShotTime < shootCooldown) {
-        return null; // ainda em cooldown
-    }
-    lastShotTime = now;
-
-    // posição inicial da bala (na ponta do canhão)
-    double startX = getCenterX() + Math.cos(angle) * (size / 2.0 + 8);
-    double startY = getCenterY() + Math.sin(angle) * (size / 2.0 + 8);
-
-    // velocidade da bala
-    double speed = 8.0;
-    double vx = Math.cos(angle) * speed;
-    double vy = Math.sin(angle) * speed;
-
-    return new Bullet(startX, startY, vx, vy);
-}
-
-
     public void render(Graphics2D g) {
-        // salva o estado gráfico atual
         AffineTransform old = g.getTransform();
 
-        // move o sistema de coordenadas pro centro da torre e aplica rotação
+        // desenha torre centrada
         g.translate(getCenterX(), getCenterY());
         g.rotate(angle);
 
-        // desenha o corpo principal (círculo)
         g.setColor(Color.CYAN);
         g.fillOval(-size / 2, -size / 2, size, size);
 
-        // desenha o canhão (um retângulo apontando pra direita)
         g.setColor(Color.MAGENTA);
-        g.fillRect(10, -5, 40, 10);
+        g.fillRect(0, -5, 35, 10);
 
-        // restaura a matriz original
         g.setTransform(old);
+
+        // barra de vida abaixo da torre (usa getCenterX/Y)
+        int barW = 50;
+        int barH = 8;
+        int bx = (int) (getCenterX() - barW / 2.0);
+        int by = (int) (getCenterY() + 40);
+
+        g.setColor(Color.GRAY);
+        g.fillRect(bx, by, barW, barH);
+
+        // cor dinâmica opcional
+        if (hp > 60) g.setColor(Color.CYAN);
+        else if (hp > 30) g.setColor(Color.ORANGE);
+        else g.setColor(Color.RED);
+
+        int filled = (int) ((hp / 100.0) * barW);
+        g.fillRect(bx, by, filled, barH);
+
+        g.setColor(Color.WHITE);
+        g.drawRect(bx, by, barW, barH);
     }
+    public void updateDirection(boolean up, boolean down, boolean left, boolean right) {
+    if (up && !down && !left && !right) angle = -Math.PI / 2;       // cima
+    if (down && !up && !left && !right) angle = Math.PI / 2;        // baixo
+    if (left && !right && !up && !down) angle = Math.PI;            // esquerda
+    if (right && !left && !up && !down) angle = 0;                  // direita
+
+    // diagonais
+    if (up && right) angle = -Math.PI / 4;
+    if (up && left)  angle = -3 * Math.PI / 4;
+    if (down && right) angle = Math.PI / 4;
+    if (down && left)  angle = 3 * Math.PI / 4;
+}
+
 }

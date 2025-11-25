@@ -131,6 +131,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
             drawCenteredText(g, "Pressione ENTER para começar", 300);
             drawCenteredText(g, "Para controlar a direção da torre,", 400);
             drawCenteredText(g, "pressione W A S D ou as quatro setas", 450);
+            drawCenteredText(g, "Pressione a barra de espaço para atirar", 500);
         }
         else if (gameState == STATE.PLAYING) {
             tower.render(g);

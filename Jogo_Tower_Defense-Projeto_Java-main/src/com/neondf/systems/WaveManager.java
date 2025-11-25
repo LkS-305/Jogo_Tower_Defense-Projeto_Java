@@ -80,10 +80,10 @@ public class WaveManager {
                 case 6 -> { x = -30; y = 300; }
                 case 7 -> { x = 70; y = -30; }
             }
+        }
 
-            if (this.currentWave % 5 == 1 && this.spawnInterval > 100L) {
-                this.spawnInterval -= 100L;
-            }
+        if (this.currentWave % 5 == 0 && enemiesSpawned == 0 && this.spawnInterval > 300L) {
+            this.spawnInterval -= 200L;
         }
 
         // Cria o inimigo

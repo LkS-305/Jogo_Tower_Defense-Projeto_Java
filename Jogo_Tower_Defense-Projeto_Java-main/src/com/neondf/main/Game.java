@@ -105,8 +105,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
             double dy = e.getY() - tower.getCenterY();
             double dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 40) {
-                tower.takeDamage(e.getBaseDamage());
-                hud.damage(e.getBaseDamage());
+                tower.takeDamage(e.getDmg());
+                hud.damage(e.getDmg());
                 e.kill();
                 waveManager.enemyDied();
                 if (tower.getHp() <= 0) gameState = STATE.GAME_OVER;

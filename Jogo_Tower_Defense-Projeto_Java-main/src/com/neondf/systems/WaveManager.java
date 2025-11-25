@@ -82,10 +82,6 @@ public class WaveManager {
             }
         }
 
-        if (this.currentWave % 5 == 0 && enemiesSpawned == 0 && this.spawnInterval > 300L) {
-            this.spawnInterval -= 200L;
-        }
-
         // Cria o inimigo
         switch (tipoInimigo) {
             case 0 -> this.enemies.add(new Boss(x, y));
@@ -147,16 +143,13 @@ public class WaveManager {
         this.enemySpawner();
 
         if (this.currentWave >= 5 && this.currentWave % 5 == 0) {
-            this.updateEnemies(this.enemies);
+            Enemy.upgradeEnemies();
+            this.spawnInterval -= 200L;
         }
     }
 
     // Getters e outros métodos mantidos...
     public void enemyDied() { --this.enemiesAlive; }
-
-    public void updateEnemies(ArrayList<Enemy> enemies) {
-        // Buffa os inimigos a cada 5 ondas
-    }
 
     public int getCurrentWave() { return this.currentWave; }
     // Remova getters não usados se quiser limpar o código

@@ -12,11 +12,11 @@ public class Inimigo2 extends Enemy{
 
     @Override
     public void takeDamage(int damage) {
-        if(damage >= (this.getBaseHP()/2)){
-            this.setBaseSpeed(this.getBaseSpeed() * 2);
+        if(damage >= (this.getHp()/2)){
+            this.setSpeed(this.getSpeed() * 2);
         }
-        this.setBaseHP(this.getBaseHP() - damage);
-        if(this.getBaseHP() <= 0){
+        this.setHp(this.getHp() - damage);
+        if(this.getHp() <= 0){
             this.kill();
         }
     }

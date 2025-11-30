@@ -8,7 +8,7 @@ public class Enemy {
     private double x, y, speed;
     private int dmg, hp, score, shield;
     private boolean alive = true;
-    private static int baseDmg = 10, baseHP = 10, baseScore = 10;
+    private static int baseDmg = 10, baseHP = 10, baseScore = 10000;
     private static double baseSpeed = 1.0;
 
     public Enemy(double x, double y) {

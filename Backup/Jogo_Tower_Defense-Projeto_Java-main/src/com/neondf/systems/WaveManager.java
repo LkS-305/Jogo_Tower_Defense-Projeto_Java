@@ -1,206 +1,156 @@
 package com.neondf.systems;
 
-/*
-    CRIEI METODO ENEMYSPAWNER() QUE IRÁ PREENCHER UM ARRAYLIST COM ÍNDICES DOS INIMIGOS
-    NO METODO SPAWN ENEMY, ADICIONAR UM SWITCH QUE IRÁ:
-        PEGAR O PRIMEIRO NUMERO DO spawnType e ADICIONA O INIMIGO CORRESPONDENTE NO ARRAYLIST enemies
-        REMOVER ESSE PRIMEIRO NUMERO DO ARRAYLIST spawnType
-    atribui os valores das variáveis ao objeto da classe, assim a cada vez que cria uma nova waveManager, reinicia os valores
-
-    ALTEREI UM POUCO O METODO DE SPAWNENEMY PARA QUE A CADA
-    FALTA:
-        CRIAR O ALGORITMO QUE IRÁ PREENCHER O ARRAYLIST
-        CRIAR O ALGORITMO PARA O BOSS
-            CRIAR CLASSE PARA O BOSS
-            QUAL O DIFERENCIAL DESSE BOSS?
-
-*/
-
+import com.neondf.entities.Boss;
 import com.neondf.entities.Enemy;
-import com.neondf.entities.Inimigo3;
 import com.neondf.entities.Inimigo1;
 import com.neondf.entities.Inimigo2;
-import com.neondf.entities.Boss;
-
+import com.neondf.entities.Inimigo3;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class WaveManager {
-
-    private int currentWave;
-    private int enemiesToSpawn, bossNumber;
-    private int enemiesSpawned;
-    private int enemiesAlive;
-    private long lastSpawnTime;
-    private long spawnInterval; // ms entre inimigos
+    private int currentWave = 1;
+    private int enemiesToSpawn;
+    private int bossNumber = 1;
+    private int enemiesSpawned = 0;
+    private int enemiesAlive = 0;
+    private long lastSpawnTime = System.currentTimeMillis();
+    private long spawnInterval = 1200L;
     private final ArrayList<Enemy> enemies;
     private final ArrayList<Integer> spawnType;
     private final Random random = new Random();
 
     public WaveManager(ArrayList<Enemy> enemies) {
-        this.currentWave = 1;
-        this.bossNumber = 1;
-        this.enemiesSpawned = 0;
-        this.enemiesAlive = 0;
-        this.lastSpawnTime = System.currentTimeMillis();
-        this.spawnInterval = 1200;
         this.enemies = enemies;
         this.spawnType = new ArrayList<>();
-        enemiesToSpawn = 5;
-    }
 
+        // Configuração inicial
+        this.enemiesToSpawn = 5;
+        this.enemySpawner(); // Preenche a primeira leva
+    }
 
     public void tick() {
         long now = System.currentTimeMillis();
-        if(currentWave == 1 && enemiesSpawned == 0){
-            enemySpawner();
+
+        // Só tenta spawnar se ainda houver inimigos planejados E se a lista não estiver vazia
+        if (this.enemiesSpawned < this.enemiesToSpawn && now - this.lastSpawnTime >= this.spawnInterval) {
+            this.spawnEnemy();
+            // Se spawnEnemy falhar (lista vazia), não incrementamos nada para não travar
         }
 
-        // Spawna enquanto ainda há inimigos pra nascer
-        if (enemiesSpawned < enemiesToSpawn && now - lastSpawnTime >= spawnInterval) {
-            spawnEnemy();
-            enemiesSpawned++;
-            enemiesAlive++;
-            lastSpawnTime = now;
-        }
-
-        // Se acabou a wave
-        if (enemiesAlive <= 0 && enemiesSpawned >= enemiesToSpawn) {
-            nextWave();
-            enemySpawner();
+        // Checa fim de wave
+        if (this.enemiesAlive <= 0 && this.enemiesSpawned >= this.enemiesToSpawn) {
+            this.nextWave();
         }
     }
 
     private void spawnEnemy() {
-        int x = 0, y = 0;
+        // --- TRAVA DE SEGURANÇA ---
+        // Se a lista estiver vazia, cancela o spawn. Isso impede o jogo de travar.
+        if (this.spawnType.isEmpty()) {
+            // Força o fim do spawn para evitar loop infinito tentando spawnar fantasma
+            this.enemiesSpawned = this.enemiesToSpawn;
+            return;
+        }
 
-        // Até a wave 5 → direções fixas N S L O
-        if (currentWave <= 5) {
-            int dir = enemiesSpawned % 4; // alterna direções
+        // Remove o primeiro da fila (Java seguro)
+        int tipoInimigo = this.spawnType.removeFirst();
+
+        int x = 0;
+        int y = 0;
+
+        // Lógica de Posição (Mantive igual)
+        if (this.currentWave <= 5) {
+            int dir = this.enemiesSpawned % 4;
             switch (dir) {
-                case 0 -> { x = 400; y = -30; } // Norte
-                case 1 -> { x = 400; y = 630; } // Sul
-                case 2 -> { x = 830; y = 300; } // Leste
-                case 3 -> { x = -30; y = 300; } // Oeste
+                case 0 -> { x = 400; y = -30; }
+                case 1 -> { x = 400; y = 630; }
+                case 2 -> { x = 830; y = 300; }
+                case 3 -> { x = -30; y = 300; }
             }
         } else {
-            // Depois da wave 5 → posições aleatórias nas bordas
-            int side = random.nextInt(8);
+            int side = this.random.nextInt(8);
             switch (side) {
-                case 0 -> { x = 400; y = -30; } // Norte
-                case 1 -> { x = 730; y = -30; } // Nordeste
-                case 2 -> { x = 800; y = 300; } // Leste
-                case 3 -> { x = 730; y = 630; } // Sudeste
-                case 4 -> { x = 400; y = 630; } // Sul
-                case 5 -> { x = 70; y = 630; } // Sudoeste
-                case 6 -> { x = -30; y = 300; } // Oeste
-                case 7 -> { x = 70; y = -30; }// Noroeste
-            }
-            if((currentWave % 5 == 1) && spawnInterval > 100){
-                spawnInterval -= 100;
+                case 0 -> { x = 400; y = -30; }
+                case 1 -> { x = 730; y = -30; }
+                case 2 -> { x = 800; y = 300; }
+                case 3 -> { x = 730; y = 630; }
+                case 4 -> { x = 400; y = 630; }
+                case 5 -> { x = 70; y = 630; }
+                case 6 -> { x = -30; y = 300; }
+                case 7 -> { x = 70; y = -30; }
             }
         }
-        if(!spawnType.isEmpty()){
-            switch(spawnType.getFirst()){
-                case 0: enemies.add(new Boss(x,y)); break;
-                case 1: enemies.add(new Enemy(x,y)); break;
-                case 2: enemies.add(new Inimigo1(x,y)); break;
-                case 3: enemies.add(new Inimigo2(x,y)); break;
-                case 4: enemies.add(new Inimigo3(x,y)); break;
-            }
+
+        // Cria o inimigo
+        switch (tipoInimigo) {
+            case 0 -> this.enemies.add(new Boss(x, y));
+            case 1 -> this.enemies.add(new Enemy(x, y));
+            case 2 -> this.enemies.add(new Inimigo1(x, y));
+            case 3 -> this.enemies.add(new Inimigo2(x, y));
+            case 4 -> this.enemies.add(new Inimigo3(x, y));
         }
+
+        // Atualiza contadores APÓS o sucesso
+        ++this.enemiesSpawned;
+        ++this.enemiesAlive;
+        this.lastSpawnTime = System.currentTimeMillis();
     }
 
-    //ATRIBUI VALORES INT PARA O TIPO DE INIMIGO A SER CRIADO
-    //0 -->     BOSS
-    //1 -->     INIMIGO BÁSICO
-    //2 -->     INIMIGO1 COM ESCUDO
-    //3 -->     INIMIGO2 QUE ACELERA
-    //4 -->     INIMIGO3 PEQUENO
-    public void enemySpawner(){
-        if(currentWave <= 3){
-            for(int i = 0; i < enemiesToSpawn; i++){
-                spawnType.add(1);
-            }
-            enemiesToSpawn += 4;
-        } else{
-            if(currentWave <= 7){
-                for(int i = 0; i < enemiesToSpawn; i+=2){
-                    spawnType.add(1);
-                    spawnType.add(2);
-                }
-                enemiesToSpawn += 5;
-            } else{
-                if(currentWave <= 12){
-                    for(int i = 0; i < enemiesToSpawn; i+=3){
-                        spawnType.add((i % 3) + 1);
-                    }
-                    enemiesToSpawn += 6;
-                } else{
-                    for(int i = 0; i < enemiesToSpawn; i++){
-                        spawnType.add(random.nextInt(5));
-                    }
-                    enemiesToSpawn += 10;
-                }
-            }
-        }
-        if(currentWave % 5 == 0){
-            for(int i = 0; i <= bossNumber; i++){
-                spawnType.add(0);   //SPAWN BOSS A CADA 5 WAVES (incrementa o número de boss spawnado a cada 5 waves);
-            }
-            bossNumber *= 2;
-        }
-    }
+    public void enemySpawner() {
+        // Aqui estava o erro: você aumentava o enemiesToSpawn DEPOIS do loop e também no nextWave.
+        // Vamos usar variaveis temporarias para calcular quantos adicionar.
 
-    public ArrayList<Integer> getSpawnType() {
-        return spawnType;
+        int qtdParaAdicionar = 0;
+
+        if (this.currentWave <= 3) {
+            qtdParaAdicionar = 5 + (currentWave * 2); // Exemplo de escalonamento
+            for(int i = 0; i < qtdParaAdicionar; ++i) {
+                this.spawnType.add(1);
+            }
+        } else if (this.currentWave <= 7) {
+            qtdParaAdicionar = 8 + currentWave;
+            for(int i = 0; i < qtdParaAdicionar; i++) {
+                this.spawnType.add(this.random.nextBoolean() ? 1 : 2);
+            }
+        } else {
+            qtdParaAdicionar = 10 + (currentWave * 2);
+            for(int i = 0; i < qtdParaAdicionar; ++i) {
+                this.spawnType.add(this.random.nextInt(5));
+            }
+        }
+
+        if (this.currentWave % 5 == 0) {
+            for(int i = 0; i < this.bossNumber; ++i) {
+                this.spawnType.add(0);
+                qtdParaAdicionar++;
+            }
+            this.bossNumber++;
+        }
+
+        // O PULO DO GATO:
+        // Sincronizamos o numero total EXATAMENTE com o tamanho da lista.
+        // Assim é impossível dar erro de falta de inimigo.
+        this.enemiesToSpawn = this.spawnType.size();
     }
 
     private void nextWave() {
-        currentWave++;
-        enemiesToSpawn += 3; // aumenta progressivamente
-        enemiesSpawned = 0;
-        enemiesAlive = 0;
-        if(currentWave >= 5 && ((currentWave % 5) == 0)){  //aumenta velocidade dos inimigos a partir da wave 10
-            updateEnemies(enemies);
+        ++this.currentWave;
+        this.enemiesSpawned = 0;
+        this.enemiesAlive = 0;
+
+        // Chama o spawner para preencher a lista da nova onda
+        this.enemySpawner();
+
+        if (this.currentWave >= 5 && this.currentWave % 5 == 0) {
+            Enemy.upgradeEnemies();
+            this.spawnInterval -= 200L;
         }
     }
 
-    public void enemyDied() {
-        enemiesAlive--;
-    }
+    // Getters e outros métodos mantidos...
+    public void enemyDied() { --this.enemiesAlive; }
 
-    //Esse metodo atualiza a velocidade dos inimigos em 10%
-    public void updateEnemies(ArrayList<Enemy> enemies){
-        for(Enemy  e: enemies){
-            e.incSpeed();
-            e.incHP();
-            e.incDmg();
-        }
-    }
-
-    public int getCurrentWave() {
-        return currentWave;
-    }
-
-    public int getBossNumber(){
-        return bossNumber;
-    }
-
-    public int getEnemiesToSpawn() {
-        return enemiesToSpawn;
-    }
-
-    public int getEnemiesSpawned() {
-        return enemiesSpawned;
-    }
-    public int getEnemiesAlive() {
-        return enemiesAlive;
-    }
-    public long getLastSpawnTime() {
-        return lastSpawnTime;
-    }
-    public long getSpawnInterval() {
-        return spawnInterval;
-    }
+    public int getCurrentWave() { return this.currentWave; }
+    // Remova getters não usados se quiser limpar o código
 }

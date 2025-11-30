@@ -1,22 +1,23 @@
 package com.neondf.entities;
 
 import java.awt.*;
-/*
-    ALTEREI INIMIGO PARA TER ARMADURA E IGUALEI A 0, ASSIM OS INIMIGOS QUE TIVEREM ARMADURA, ALTERA O VALOR NA SUBCLASSE
-* */
+
 public class Enemy {
 
-    private double x, y, baseSpeed;
-    private int baseDamage, baseHP, score, shield;
+    // baseSpeed deve ser double para aceitar 0.5, 0.8, etc.
+    private double x, y, speed;
+    private int dmg, hp, score, shield;
     private boolean alive = true;
+    private static int baseDmg = 10, baseHP = 10, baseScore = 10000;
+    private static double baseSpeed = 1.0;
 
     public Enemy(double x, double y) {
         this.x = x;
         this.y = y;
-        this.baseSpeed = 1;
-        this.baseDamage = 10;
-        this.baseHP = 10;
-        this.score = 10;
+        this.speed = baseSpeed; // Garante que comece como double
+        this.dmg = baseDmg;
+        this.hp = baseHP;
+        this.score = baseScore;
         this.shield = 0;
     }
 
@@ -26,67 +27,69 @@ public class Enemy {
         double dx = targetX - x;
         double dy = targetY - y;
         double dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist != 0) {
-            x += dx / dist * baseSpeed;
-            y += dy / dist * baseSpeed;
+
+        // Se a distância for muito pequena, evita erro de divisão por zero
+        if (dist > 1) {
+            x += (dx / dist) * speed;
+            y += (dy / dist) * speed;
         }
     }
 
-    public double getBaseSpeed(){
-        return baseSpeed;
+    // --- Getters e Setters ---
+
+    public double getSpeed(){ return speed; }
+    public void setSpeed(double speed){ this.speed = speed; }
+
+    public int getDmg(){ return dmg; }
+    public void setDmg(int damage){ this.dmg = damage; }
+
+    public int getHp(){ return hp; }
+    public void setHp(int hp){ this.hp = hp; }
+
+    public int getScore(){ return score; }
+    public void setScore(int score){ this.score = score; }
+
+    public int getShield() {
+        return shield;
     }
-    public void setBaseSpeed(double baseSpeed){
-        this.baseSpeed = baseSpeed;
+    public void setShield(int shield) {
+        this.shield = shield;
     }
 
-    public int getBaseDamage(){
-        return baseDamage;
+    public int getBaseDmg(){
+        return baseDmg;
     }
-    public void setBaseDamage(int damage){
-        this.baseDamage = damage;
-    }
-
-    public int getBaseHP(){
+    public int getBaseHp(){
         return baseHP;
     }
-    public void setBaseHP(int baseHP){
-        this.baseHP = baseHP;
+    public int getBaseScore(){
+        return baseScore;
     }
-
-    public int getScore(){
-        return score;
-    }
-    public void setScore(int score){
-        this.score = score;
+    public double getBaseSpeed(){
+        return baseSpeed;
     }
 
     public void render(Graphics2D g) {
         g.setColor(Color.MAGENTA);
-        g.fillOval((int) x, (int) y, 20, 20);
+        g.fillOval((int) (x-10), (int) (y-10), 20, 20);
     }
 
     public boolean isAlive() { return alive; }
     public double getX() { return x; }
     public double getY() { return y; }
 
-    public void incSpeed(){
-        this.baseSpeed = (int) (1.1 * this.baseSpeed);
-    }
-    public void incDmg(){
-        this.baseDamage = (int) (1.1 * this.baseDamage);
-    }
-    public void incHP(){
-        this.baseHP = (int) (1.1 * this.baseHP);
-    }
-
-    public void changeSpeed(double multiplier){
-        this.baseSpeed = (int) (multiplier * this.baseSpeed);
-    }
     public void changeDmg(double multiplier){
-        this.baseDamage = (int) (multiplier * this.baseDamage);
+        this.dmg = (int) (multiplier * this.dmg);
     }
     public void changeHP(double multiplier){
-        this.baseHP = (int) (multiplier * this.baseHP);
+        this.hp = (int) (multiplier * this.hp);
+    }
+    public void changeScore(double multiplier){ this.score = (int) (multiplier * this.score); }
+    public void changeSpeed(double multiplier){
+        // --- O ERRO ESTAVA AQUI ---
+        // Antes estava: (int) (multiplier * this.baseSpeed);
+        // Agora deixamos como double:
+        this.speed = multiplier * this.speed;
     }
 
     public int calculateCoin(){
@@ -110,11 +113,17 @@ public class Enemy {
                 this.shield = 0;
             }
         } else{
-            this.setBaseHP(this.getBaseHP() - damage);
-            if(this.getBaseHP() <= 0){
+            this.setHp(this.getHp() - damage);
+            if(this.getHp() <= 0){
                 this.kill();
             }
         }
     }
 
+    public static void upgradeEnemies(){
+        baseSpeed = 1.2 * baseSpeed;
+        baseHP = (int) (1.2 * baseHP);
+        baseDmg = (int) (1.2 * baseDmg);
+        baseScore *= 2;
+    }
 }

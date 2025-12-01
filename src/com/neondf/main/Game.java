@@ -9,8 +9,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage; // Importante para as imagens
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -18,13 +19,14 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
     private Thread thread;
     private boolean running = false;
-    private enum STATE { MENU, PLAYING, GAME_OVER }
+    private enum STATE { MENU, PLAYING, PAUSED, GAME_OVER }
     private STATE gameState = STATE.MENU;
 
     private Tower tower;
     private final ArrayList<Bullet> bullets = new ArrayList<>();
     private final ArrayList<Enemy> enemies = new ArrayList<>();
     private final ArrayList<Shockwave> shockwaves = new ArrayList<>();
+    private final ArrayList<DamageText> damageTexts = new ArrayList<>();
 
     private WaveManager waveManager;
     private HUD hud;
@@ -34,26 +36,30 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     private Medica medica;
     private Escudeira escudeira;
 
-    // --- FUNDOS (BACKGROUNDS) ---
-    private BufferedImage[] backgrounds; // Array para guardar as 3 imagens
-    private int currentBgIndex = 0;      // Qual imagem estamos usando agora
+    private BufferedImage[] backgrounds;
+    private int currentBgIndex = 0;
 
     private boolean up, down, left, right;
     private boolean isShooting = false;
     private int mouseX = 0;
     private int mouseY = 0;
 
+    private int shakeTimer = 0;
+    private boolean highScoreSaved = false;
+
     public Game() {
         setPreferredSize(new Dimension(800, 600));
         addKeyListener(this);
         addMouseListener(this);
 
-        // --- CARREGANDO OS FUNDOS ---
-        backgrounds = new BufferedImage[3]; // Temos 3 imagens
-        // Carrega cada uma na memória (lembre-se de corrigir o nome do arquivo 2!)
-        backgrounds[0] = new SpriteSheet("/sprites/background1.png").getSprite();
-        backgrounds[1] = new SpriteSheet("/sprites/background2.png").getSprite();
-        backgrounds[2] = new SpriteSheet("/sprites/background3.png").getSprite();
+        try {
+            backgrounds = new BufferedImage[3];
+            backgrounds[0] = new SpriteSheet("/sprites/background1.png").getSprite();
+            backgrounds[1] = new SpriteSheet("/sprites/background2.png").getSprite();
+            backgrounds[2] = new SpriteSheet("/sprites/background3.png").getSprite();
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar backgrounds.");
+        }
 
         tower = new Tower(370, 270);
         waveManager = new WaveManager(enemies);
@@ -93,7 +99,21 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             return;
         }
 
-        if (gameState == STATE.GAME_OVER) return;
+        if (gameState == STATE.PAUSED) return;
+
+        // Lógica de Salvar High Score
+        if (gameState == STATE.GAME_OVER) {
+            if (!highScoreSaved) {
+                if (hud.getScore() > menu.highScore) {
+                    ScoreManager.saveHighScore(hud.getScore());
+                    menu.highScore = hud.getScore();
+                }
+                highScoreSaved = true;
+            }
+            return;
+        }
+
+        if (shakeTimer > 0) shakeTimer--;
 
         tower.updateDirection(up, down, left, right);
         if (isShooting) tower.tryShoot(bullets);
@@ -107,15 +127,9 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         hud.setWave(waveManager.getCurrentWave());
         waveManager.tick();
 
-        shockwaves.removeIf(sw -> {
-            sw.tick();
-            return !sw.isActive();
-        });
-
-        bullets.removeIf(b -> {
-            b.tick();
-            return !b.statusBullet();
-        });
+        damageTexts.removeIf(t -> { t.tick(); return !t.isActive(); });
+        shockwaves.removeIf(sw -> { sw.tick(); return !sw.isActive(); });
+        bullets.removeIf(b -> { b.tick(); return !b.statusBullet(); });
 
         Iterator<Enemy> enemyIt = enemies.iterator();
         while (enemyIt.hasNext()) {
@@ -124,7 +138,9 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
             for (Shockwave sw : shockwaves) {
                 if (sw.collidesWith(e)) {
-                    e.takeDamage(500);
+                    int dmg = 500;
+                    e.takeDamage(dmg);
+                    damageTexts.add(new DamageText(e.getX(), e.getY()-20, dmg));
                     if (!e.isAlive()) {
                         hud.addScore(e.getScore());
                         hud.addCoin(e.calculateCoin());
@@ -136,8 +152,10 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             for (Bullet b : bullets) {
                 Rectangle br = new Rectangle((int) b.getX(), (int) b.getY(), 6, 6);
                 if (br.intersects(e.getBounds()) && b.isAlive()) {
-                    e.takeDamage((b.getBaseDmg()));
+                    int dmg = b.getBaseDmg();
+                    e.takeDamage(dmg);
                     b.hitEnemy();
+                    damageTexts.add(new DamageText(e.getX(), e.getY()-20, dmg));
 
                     if(!e.isAlive()){
                         hud.addScore(e.getScore());
@@ -169,12 +187,17 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // --- DESENHA O FUNDO ---
-        // Se a imagem atual existe, desenha ela esticada na tela toda
+        AffineTransform originalTransform = g.getTransform();
+
+        if (shakeTimer > 0 && gameState == STATE.PLAYING) {
+            int shakeX = (int) (Math.random() * 10 - 5);
+            int shakeY = (int) (Math.random() * 10 - 5);
+            g.translate(shakeX, shakeY);
+        }
+
         if (backgrounds[currentBgIndex] != null) {
             g.drawImage(backgrounds[currentBgIndex], 0, 0, getWidth(), getHeight(), null);
         } else {
-            // Se der erro na imagem, usa preto como fallback
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, getWidth(), getHeight());
         }
@@ -182,7 +205,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         if (gameState == STATE.MENU) {
             menu.render(g, mouseX, mouseY);
         }
-        else if (gameState == STATE.PLAYING) {
+        else if (gameState == STATE.PLAYING || gameState == STATE.PAUSED) {
             tower.render(g);
             atiradora.render(g);
             medica.render(g);
@@ -190,8 +213,10 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
             for (Bullet b : bullets) b.render(g);
             for (Enemy e : enemies) e.render(g);
-
             for (Shockwave sw : shockwaves) sw.render(g);
+            for (DamageText t : damageTexts) t.render(g);
+
+            g.setTransform(originalTransform);
 
             hud.render(g, tower, atiradora, medica, escudeira);
 
@@ -201,7 +226,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             int nameW = g.getFontMetrics().stringWidth(name);
             g.drawString(name, (int)tower.getCenterX() - nameW/2, (int)tower.getCenterY() - 35);
 
-            if (waveManager.isWaveStarting()) {
+            if (gameState == STATE.PLAYING && waveManager.isWaveStarting()) {
                 String waveText = "WAVE " + waveManager.getCurrentWave();
                 g.setFont(new Font("Consolas", Font.BOLD, 80));
                 g.setColor(Color.MAGENTA);
@@ -215,25 +240,99 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
                     drawCenteredText(g, "PREPARE-SE!", 380);
                 }
             }
+
+            if (gameState == STATE.PAUSED) {
+                g.setColor(new Color(0, 0, 0, 150));
+                g.fillRect(0, 0, getWidth(), getHeight());
+                g.setFont(new Font("Verdana", Font.BOLD, 60));
+                g.setColor(Color.WHITE);
+                drawCenteredText(g, "JOGO PAUSADO", 250);
+                g.setFont(new Font("Verdana", Font.PLAIN, 20));
+                g.setColor(Color.YELLOW);
+                drawCenteredText(g, "Pressione [P] ou [ESC] para continuar", 320);
+                g.setColor(Color.RED);
+                drawCenteredText(g, "[M] Sair para o Menu", 450);
+            }
         }
+
+        // --- AQUI ESTÁ A TELA "SYSTEM FAILURE" (Visual Legal) DE VOLTA ---
         else if (gameState == STATE.GAME_OVER) {
-            g.setColor(new Color(0, 0, 0, 200));
+            g.setTransform(originalTransform);
+            long now = System.currentTimeMillis();
+
+            // 1. Fundo de Alerta (Vermelho Pulsante)
+            float pulse = (float) (Math.sin(now * 0.005) + 1) / 2;
+            int alphaRed = 50 + (int)(pulse * 100);
+
+            g.setColor(new Color(10, 0, 0, 240));
             g.fillRect(0, 0, getWidth(), getHeight());
 
-            g.setFont(new Font("Consolas", Font.BOLD, 60));
-            g.setColor(Color.RED);
-            drawCenteredText(g, "GAME OVER", 180);
+            g.setColor(new Color(255, 0, 0, alphaRed));
+            g.fillRect(0, 0, getWidth(), getHeight());
 
-            g.setFont(new Font("Consolas", Font.PLAIN, 24));
+            // 2. Scanlines
+            g.setColor(new Color(0, 0, 0, 100));
+            for (int i = 0; i < getHeight(); i += 4) {
+                g.fillRect(0, i, getWidth(), 2);
+            }
+
+            // 3. Título "SYSTEM FAILURE" com Glitch
+            g.setFont(new Font("Consolas", Font.BOLD, 70));
+            String title = "SYSTEM FAILURE";
+            int tw = g.getFontMetrics().stringWidth(title);
+            int tx = (getWidth() - tw) / 2;
+            int ty = 150;
+
+            if (now % 100 > 50) {
+                g.setColor(Color.CYAN); g.drawString(title, tx - 5, ty);
+                g.setColor(Color.RED);  g.drawString(title, tx + 5, ty);
+            }
             g.setColor(Color.WHITE);
-            drawCenteredText(g, "Jogador: " + menu.playerName, 250);
+            int shakeY = (Math.random() > 0.9) ? (int)(Math.random()*10 - 5) : 0;
+            g.drawString(title, tx, ty + shakeY);
+
+            // 4. Relatório estilo Terminal
+            int boxW = 400; int boxH = 200;
+            int boxX = (getWidth() - boxW) / 2; int boxY = 220;
+
+            g.setColor(new Color(0, 0, 0, 200));
+            g.fillRect(boxX, boxY, boxW, boxH);
+            g.setColor(Color.RED);
+            g.setStroke(new BasicStroke(2));
+            g.drawRect(boxX, boxY, boxW, boxH);
+
+            g.setFont(new Font("Consolas", Font.PLAIN, 20));
+            g.setColor(Color.WHITE);
+            g.drawString("/// RELATÓRIO DE MISSÃO ///", boxX + 60, boxY + 30);
+
+            g.setFont(new Font("Consolas", Font.PLAIN, 18));
+            g.setColor(Color.GRAY);
+            g.drawString("Operador:", boxX + 20, boxY + 70);
+            g.setColor(Color.CYAN);
+            g.drawString(menu.playerName, boxX + 250, boxY + 70);
+
+            g.setColor(Color.GRAY);
+            g.drawString("Ondas Sobrevividas:", boxX + 20, boxY + 100);
             g.setColor(Color.YELLOW);
-            drawCenteredText(g, "Pontuação Final: " + hud.getScore(), 300);
-            drawCenteredText(g, "Ondas Sobrevividas: " + waveManager.getCurrentWave(), 340);
-            g.setColor(Color.WHITE);
+            g.drawString("" + waveManager.getCurrentWave(), boxX + 250, boxY + 100);
+
+            g.setColor(Color.GRAY);
+            g.drawString("Pontuação Final:", boxX + 20, boxY + 130);
+            g.setColor(Color.GREEN);
+            g.drawString("" + hud.getScore(), boxX + 250, boxY + 130);
+
+            // --- AVISO DE RECORDE ---
+            if (hud.getScore() >= menu.highScore && hud.getScore() > 0) {
+                g.setColor(Color.YELLOW);
+                g.setFont(new Font("Consolas", Font.BOLD, 16));
+                if (now % 500 > 250) g.drawString("!!! NOVO RECORDE !!!", boxX + 110, boxY + 180);
+            }
+
+            // 5. Opções
+            if (now % 1000 > 500) g.setColor(Color.WHITE); else g.setColor(Color.GRAY);
             g.setFont(new Font("Consolas", Font.BOLD, 20));
-            drawCenteredText(g, "[R] Tentar Novamente", 450);
-            drawCenteredText(g, "[ENTER] Voltar ao Menu", 490);
+            drawCenteredText(g, "[R] REINICIAR PROTOCOLO", 500);
+            drawCenteredText(g, "[ENTER] ABORTAR MISSÃO", 540);
         }
 
         g.dispose();
@@ -277,9 +376,28 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             return;
         }
 
+        if (gameState == STATE.PLAYING) {
+            if (key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) {
+                gameState = STATE.PAUSED;
+                return;
+            }
+        }
+        else if (gameState == STATE.PAUSED) {
+            if (key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) gameState = STATE.PLAYING;
+            if (key == KeyEvent.VK_M) {
+                gameState = STATE.MENU;
+                menu.updateHighScore();
+            }
+            return;
+        }
+
         if (gameState == STATE.GAME_OVER) {
             if (key == KeyEvent.VK_R) { resetGame(); gameState = STATE.PLAYING; }
-            if (key == KeyEvent.VK_ENTER) { resetGame(); gameState = STATE.MENU; }
+            if (key == KeyEvent.VK_ENTER) {
+                resetGame();
+                gameState = STATE.MENU;
+                menu.updateHighScore();
+            }
         }
 
         if (gameState == STATE.PLAYING) {
@@ -301,6 +419,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
                 if (tower.isUltimateReady()) {
                     shockwaves.add(new Shockwave(tower.getCenterX(), tower.getCenterY()));
                     tower.resetEnergy();
+                    shakeTimer = 20;
                 }
             }
         }
@@ -321,9 +440,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             }
         }
     }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
+    @Override public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_W || key == KeyEvent.VK_UP) up = false;
         if (key == KeyEvent.VK_S || key == KeyEvent.VK_DOWN) down = false;
@@ -331,7 +448,6 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         if (key == KeyEvent.VK_D || key == KeyEvent.VK_RIGHT) right = false;
         if (key == KeyEvent.VK_SPACE) isShooting = false;
     }
-
     @Override public void keyTyped(KeyEvent e) {}
     @Override public void mouseClicked(MouseEvent e) {}
     @Override public void mouseReleased(MouseEvent e) {}
@@ -341,6 +457,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     private void resetGame() {
         bullets.clear();
         enemies.clear();
+        damageTexts.clear();
         shockwaves.clear();
         tower = new Tower(370, 270);
         waveManager = new WaveManager(enemies);
@@ -348,14 +465,10 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         atiradora = new Atiradora();
         medica = new Medica();
         escudeira = new Escudeira();
-
-        // --- TROCA O FUNDO ---
-        // Pega o próximo índice (0 -> 1 -> 2 -> 0...)
         currentBgIndex = (currentBgIndex + 1) % backgrounds.length;
+        highScoreSaved = false;
     }
-
     public Tower getTower() { return tower; }
-
     public static void main(String[] args) {
         Game game = new Game();
         new Window(800, 600, "🟣 Neon Defense - Ultimate", game);

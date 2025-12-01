@@ -13,13 +13,12 @@ public class Bullet {
     private int hits;
     private boolean alive = true;
 
-    // Imagem da bala
     private BufferedImage sprite;
-    private int width = 20;  // Tamanho padrão visual
+    private int width = 20;
     private int height = 20;
 
-    // Novo Construtor recebendo a Imagem
-    public Bullet(double x, double y, double angle, double speed, int dmg, int maxHits, BufferedImage sprite) {
+    // --- NOVO ARGUMENTO: double scale ---
+    public Bullet(double x, double y, double angle, double speed, int dmg, int maxHits, BufferedImage sprite, double scale) {
         this.x = x;
         this.y = y;
         this.angle = angle;
@@ -28,10 +27,10 @@ public class Bullet {
         this.hits = maxHits;
         this.sprite = sprite;
 
-        // Ajusta o tamanho se a imagem existir
+        // Aplica a escala no tamanho da imagem
         if (sprite != null) {
-            this.width = sprite.getWidth();
-            this.height = sprite.getHeight();
+            this.width = (int) (sprite.getWidth() * scale);
+            this.height = (int) (sprite.getHeight() * scale);
         }
     }
 
@@ -45,18 +44,14 @@ public class Bullet {
     }
 
     public void render(Graphics2D g) {
-        // Se tiver imagem, desenha girando
         if (sprite != null) {
             AffineTransform old = g.getTransform();
             g.translate(x, y);
-            g.rotate(angle); // Gira a bala na direção que está andando
-
-            // Desenha centralizado
+            g.rotate(angle);
+            // Desenha com o tamanho reajustado pela escala
             g.drawImage(sprite, -width / 2, -height / 2, width, height, null);
-
             g.setTransform(old);
         } else {
-            // Fallback (bolinha ciano antiga) se a imagem falhar
             g.setColor(Color.CYAN);
             g.fillOval((int) x, (int) y, 6, 6);
         }
@@ -73,7 +68,6 @@ public class Bullet {
     }
 
     public boolean statusBullet(){
-        // Remove se sair muito longe da tela
         return this.alive && (!(this.getX() > 1000)) && (!(this.getX() < -100)) && (!(this.getY() > 800)) && (!(this.getY() < -100));
     }
 

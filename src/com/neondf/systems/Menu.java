@@ -2,52 +2,95 @@ package com.neondf.systems;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class Menu {
 
-    // Botões Principais
     public Rectangle playBtn;
     public Rectangle settingsBtn;
+    public Rectangle controlsBtn;
     public Rectangle nameBox;
 
-    // Botão dentro de Configurações
-    public Rectangle controlsBtn;
-
-    // Estados do Menu
     public boolean inSettings = false;
-    public boolean inControls = false; // Nova tela
+    public boolean inControls = false;
 
     public String playerName = "Player";
     private int maxChars = 10;
 
+    // --- NOVO: Variável para guardar o Recorde ---
+    public int highScore = 0;
+
+    // Variáveis Visuais
+    private long timer = 0;
+    private float gridOffset = 0;
+    private Random rand = new Random();
+    private ArrayList<Point> stars = new ArrayList<>();
+    private ArrayList<Float> starSpeeds = new ArrayList<>();
+
+    private final Color DEEP_BG = new Color(10, 5, 20);
+    private final Color NEON_PURPLE = new Color(180, 0, 255);
+    private final Color NEON_CYAN = new Color(0, 255, 255);
+    private final Color GRID_COLOR = new Color(200, 0, 255, 50);
+
     public Menu() {
         int centerX = 800 / 2 - 100;
 
-        nameBox = new Rectangle(centerX, 200, 200, 40);
-        playBtn = new Rectangle(centerX, 300, 200, 50);
-        settingsBtn = new Rectangle(centerX, 380, 200, 50);
-
-        // Botão que fica dentro da tela de configurações
+        nameBox = new Rectangle(centerX, 240, 200, 40);
+        playBtn = new Rectangle(centerX, 320, 200, 50);
+        settingsBtn = new Rectangle(centerX, 400, 200, 50);
         controlsBtn = new Rectangle(centerX, 400, 200, 50);
+
+        for (int i = 0; i < 50; i++) {
+            stars.add(new Point(rand.nextInt(800), rand.nextInt(600)));
+            starSpeeds.add(0.5f + rand.nextFloat() * 2.0f);
+        }
+
+        // --- CARREGA O RECORDE AO INICIAR ---
+        updateHighScore();
     }
 
-    public void tick() { }
+    // Método para recarregar o recorde (chamado quando volta do Game Over)
+    public void updateHighScore() {
+        this.highScore = ScoreManager.loadHighScore();
+    }
+
+    public void tick() {
+        timer++;
+        gridOffset += 1.5;
+        if (gridOffset >= 40) gridOffset = 0;
+
+        for (int i = 0; i < stars.size(); i++) {
+            Point p = stars.get(i);
+            p.y -= starSpeeds.get(i);
+            if (p.y < 0) {
+                p.y = 600;
+                p.x = rand.nextInt(800);
+            }
+        }
+    }
 
     public void render(Graphics2D g, int mouseX, int mouseY) {
         // Fundo
-        g.setColor(new Color(10, 10, 20));
+        GradientPaint bgGradient = new GradientPaint(0, 0, Color.BLACK, 0, 600, DEEP_BG);
+        g.setPaint(bgGradient);
         g.fillRect(0, 0, 800, 600);
 
-        // Título Geral
-        if (!inControls) { // Só mostra o título grande se não estiver lendo os controles
-            g.setFont(new Font("Consolas", Font.BOLD, 60));
-            g.setColor(Color.MAGENTA);
-            drawCenteredText(g, "NEON DEFENSE", 100);
-            g.setColor(Color.CYAN);
-            drawCenteredText(g, "NEON DEFENSE", 97);
-        }
+        // Estrelas
+        g.setColor(new Color(255, 255, 255, 100));
+        for (Point p : stars) g.fillRect(p.x, p.y, 2, 2);
 
-        // Lógica de qual tela mostrar
+        // Grade
+        int horizon = 300;
+        g.setColor(GRID_COLOR);
+        for (int i = -400; i <= 1200; i += 80) g.drawLine(400 + (i-400)/4, horizon, i, 600);
+        for (int i = 0; i < 300; i += 40) {
+            int y = horizon + i + (int)gridOffset;
+            if (y <= 600) g.drawLine(0, y, 800, y);
+        }
+        g.setColor(NEON_PURPLE);
+        g.fillRect(0, horizon - 1, 800, 3);
+
         if (inControls) {
             renderControls(g);
         } else if (inSettings) {
@@ -56,123 +99,168 @@ public class Menu {
             renderMainMenu(g, mouseX, mouseY);
         }
 
-        // Rodapé
-        g.setFont(new Font("Arial", Font.PLAIN, 12));
-        g.setColor(Color.GRAY);
-        g.drawString("v1.2 - Controls Update", 10, 580);
+        g.setColor(Color.DARK_GRAY);
+        g.setFont(new Font("Arial", Font.PLAIN, 10));
+        g.drawString("NEON SYSTEM v2.1 // SAVE_ENABLED", 10, 590);
     }
 
     private void renderMainMenu(Graphics2D g, int mouseX, int mouseY) {
+        // --- MOSTRAR HIGH SCORE NO TOPO ---
         g.setFont(new Font("Consolas", Font.BOLD, 20));
+        g.setColor(Color.YELLOW);
+        String hsText = "BEST RECORD: " + highScore;
+        int hsW = g.getFontMetrics().stringWidth(hsText);
+        g.drawString(hsText, (800 - hsW)/2, 40);
 
-        // Caixa Nome
-        g.setColor(Color.DARK_GRAY);
+        // Título
+        g.setFont(new Font("Consolas", Font.BOLD, 70));
+        String title = "NEON DEFENSE";
+        int titleW = g.getFontMetrics().stringWidth(title);
+        int titleX = (800 - titleW) / 2;
+        int titleY = 150;
+
+        g.setColor(new Color(255, 0, 255, 180));
+        g.drawString(title, titleX + 4, titleY);
+        g.setColor(new Color(0, 255, 255, 180));
+        g.drawString(title, titleX - 4, titleY);
+
+        if (rand.nextInt(100) > 95) {
+            g.setColor(Color.LIGHT_GRAY);
+            g.drawString(title, titleX + rand.nextInt(5)-2, titleY + rand.nextInt(5)-2);
+        } else {
+            g.setColor(Color.WHITE);
+            g.drawString(title, titleX, titleY);
+        }
+
+        g.setFont(new Font("Consolas", Font.PLAIN, 16));
+        g.setColor(NEON_CYAN);
+        drawCenteredText(g, "- PRESS START TO DEFEND -", 180);
+
+        // Input Nome
+        g.setColor(new Color(20, 20, 40, 200));
         g.fill(nameBox);
-        g.setColor(Color.CYAN);
+        g.setColor(NEON_PURPLE);
         g.draw(nameBox);
+        g.setFont(new Font("Consolas", Font.PLAIN, 20));
         g.setColor(Color.WHITE);
-        g.drawString("Nome: " + playerName + (System.currentTimeMillis() % 1000 > 500 ? "_" : ""), nameBox.x + 10, nameBox.y + 27);
+        String cursor = (timer % 40 > 20) ? "_" : "";
+        g.drawString("CAPT: " + playerName + cursor, nameBox.x + 10, nameBox.y + 28);
 
-        // Botão Jogar
-        drawButton(g, playBtn, "JOGAR", mouseX, mouseY, Color.CYAN);
-
-        // Botão Config
-        drawButton(g, settingsBtn, "CONFIGURAÇÕES", mouseX, mouseY, Color.MAGENTA);
+        // Botões
+        drawNeonButton(g, playBtn, "INICIAR MISSÃO", mouseX, mouseY, NEON_CYAN);
+        drawNeonButton(g, settingsBtn, "SISTEMA", mouseX, mouseY, NEON_PURPLE);
     }
 
     private void renderSettings(Graphics2D g, int mouseX, int mouseY) {
-        g.setFont(new Font("Consolas", Font.PLAIN, 20));
+        g.setColor(new Color(0, 0, 0, 220));
+        g.fillRect(100, 100, 600, 400);
+        g.setColor(NEON_PURPLE);
+        g.drawRect(100, 100, 600, 400);
+
+        g.setFont(new Font("Consolas", Font.PLAIN, 24));
         g.setColor(Color.WHITE);
-        drawCenteredText(g, "--- CONFIGURAÇÕES ---", 200);
+        drawCenteredText(g, "/// CONFIGURAÇÕES DO SISTEMA ///", 150);
 
-        drawCenteredText(g, "Dificuldade: Normal", 260);
-        drawCenteredText(g, "Som: Imaginário (Por enquanto)", 300);
+        g.setFont(new Font("Consolas", Font.PLAIN, 18));
+        g.setColor(Color.GRAY);
+        drawCenteredText(g, "Dificuldade: [ NORMAL ]", 220);
+        drawCenteredText(g, "Som: [ DESATIVADO ]", 260);
 
-        // Botão para ver Controles
-        drawButton(g, controlsBtn, "VER CONTROLES", mouseX, mouseY, Color.ORANGE);
+        drawNeonButton(g, controlsBtn, "CONTROLES", mouseX, mouseY, Color.ORANGE);
 
         g.setColor(Color.YELLOW);
-        drawCenteredText(g, "[ESC] Voltar", 500);
+        drawCenteredText(g, "[ESC] RETORNAR", 480);
     }
 
     private void renderControls(Graphics2D g) {
-        g.setFont(new Font("Consolas", Font.BOLD, 40));
-        g.setColor(Color.ORANGE);
-        drawCenteredText(g, "GUIA DE CONTROLES", 60);
+        g.setColor(new Color(0, 0, 0, 240));
+        g.fillRect(0, 0, 800, 600);
 
-        g.setFont(new Font("Consolas", Font.BOLD, 18));
+        g.setFont(new Font("Consolas", Font.BOLD, 40));
+        g.setColor(NEON_CYAN);
+        drawCenteredText(g, "MANUAL DE DEFESA", 80);
+
+        g.setFont(new Font("Consolas", Font.BOLD, 16));
         g.setColor(Color.WHITE);
 
-        int leftX = 200;
-        int rightX = 500;
+        int leftX = 150;
+        int rightX = 450;
         int y = 150;
 
-        // --- MOVIMENTAÇÃO ---
-        g.setColor(Color.CYAN);
-        g.drawString("MIRA / MOVIMENTO", leftX, y);
-        g.setColor(Color.WHITE);
-        g.drawString("[ W ][ A ][ S ][ D ]", leftX, y + 30);
-        g.drawString("ou Setas para girar", leftX, y + 50);
+        drawKey(g, "W", leftX, y); drawKey(g, "A", leftX+40, y); drawKey(g, "S", leftX+80, y); drawKey(g, "D", leftX+120, y);
+        g.drawString("-> MOVER MIRA", leftX + 170, y+20);
 
-        // --- TIRO ---
-        g.setColor(Color.CYAN);
-        g.drawString("COMBATE", rightX, y);
-        g.setColor(Color.WHITE);
-        g.drawString("[ ESPAÇO ] Segure para Atirar", rightX, y + 30);
+        y += 60;
+        drawKey(g, "SPACE", leftX, y, 100);
+        g.drawString("-> DISPARAR", leftX + 120, y+20);
 
-        y += 120;
-
-        // --- UPGRADES ---
-        g.setColor(Color.MAGENTA);
-        g.drawString("LOJA - TORRE PRINCIPAL", leftX, y);
-        g.setColor(Color.WHITE);
-        g.drawString("[ 1 ] Dano", leftX, y + 30);
-        g.drawString("[ 2 ] Velocidade de Tiro", leftX, y + 50);
-        g.drawString("[ 3 ] Perfuração", leftX, y + 70);
-
-        g.setColor(Color.MAGENTA);
-        g.drawString("LOJA - AUXILIARES", rightX, y);
-        g.setColor(Color.WHITE);
-        g.drawString("[ 4 ] Torre Atiradora", rightX, y + 30);
-        g.drawString("[ 5 ] Torre Médica", rightX, y + 50);
-        g.drawString("[ 6 ] Torre de Escudo", rightX, y + 70);
-
-        // Voltar
+        y += 60;
+        drawKey(g, "E", leftX, y);
         g.setColor(Color.YELLOW);
-        drawCenteredText(g, "Pressione [ESC] para voltar", 550);
+        g.drawString("-> ULTIMATE (Choque)", leftX + 50, y+20);
+
+        y = 150;
+        g.setColor(NEON_PURPLE);
+        g.drawString("UPGRADES (Teclado Numérico):", rightX, y);
+        y += 30;
+        g.setColor(Color.WHITE);
+        g.drawString("[1] Dano", rightX, y); y+=25;
+        g.drawString("[2] Velocidade", rightX, y); y+=25;
+        g.drawString("[3] Perfuração", rightX, y); y+=25;
+        g.drawString("[7] Multi-Tiro", rightX, y); y+=40;
+
+        g.setColor(NEON_CYAN);
+        g.drawString("SUPORTE:", rightX, y); y+=30;
+        g.setColor(Color.WHITE);
+        g.drawString("[4] Atiradora", rightX, y); y+=25;
+        g.drawString("[5] Médica", rightX, y); y+=25;
+        g.drawString("[6] Escudeira", rightX, y);
+
+        g.setColor(Color.YELLOW);
+        drawCenteredText(g, "[ESC] FECHAR MANUAL", 550);
     }
 
-    // Método auxiliar para desenhar botões bonitos
-    private void drawButton(Graphics2D g, Rectangle btn, String text, int mx, int my, Color hoverColor) {
-        if (btn.contains(mx, my)) {
-            g.setColor(hoverColor);
+    private void drawNeonButton(Graphics2D g, Rectangle btn, String text, int mx, int my, Color color) {
+        boolean hover = btn.contains(mx, my);
+        if (hover) {
+            g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 50));
             g.fillRect(btn.x, btn.y, btn.width, btn.height);
-            g.setColor(Color.BLACK);
+            g.setColor(color);
+            g.setStroke(new BasicStroke(3));
             g.drawRect(btn.x, btn.y, btn.width, btn.height);
-        } else {
             g.setColor(Color.WHITE);
-            g.draw(btn);
+        } else {
+            g.setColor(color);
+            g.setStroke(new BasicStroke(1));
+            g.drawRect(btn.x, btn.y, btn.width, btn.height);
         }
-
-        // Centraliza texto no botão
         FontMetrics fm = g.getFontMetrics();
         int tw = fm.stringWidth(text);
         int th = fm.getHeight();
-        g.drawString(text, btn.x + (btn.width - tw) / 2, btn.y + (btn.height + th/2) / 2 - 3);
+        g.drawString(text, btn.x + (btn.width - tw) / 2, btn.y + (btn.height + th/2) / 2 - 4);
     }
 
-    public void handleTyping(int key, char keyChar) {
-        if (inSettings || inControls) return; // Não digita se estiver nos menus
-        if (key == KeyEvent.VK_BACK_SPACE && playerName.length() > 0) {
-            playerName = playerName.substring(0, playerName.length() - 1);
-        } else if (playerName.length() < maxChars && Character.isLetterOrDigit(keyChar)) {
-            playerName += keyChar;
-        }
+    private void drawKey(Graphics2D g, String key, int x, int y) { drawKey(g, key, x, y, 30); }
+    private void drawKey(Graphics2D g, String key, int x, int y, int w) {
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(x, y, w, 30);
+        g.setColor(Color.WHITE);
+        g.drawRect(x, y, w, 30);
+        g.drawString(key, x + 5, y + 20);
     }
 
     private void drawCenteredText(Graphics2D g, String text, int y) {
         FontMetrics fm = g.getFontMetrics();
         int textWidth = fm.stringWidth(text);
         g.drawString(text, (800 - textWidth) / 2, y);
+    }
+
+    public void handleTyping(int key, char keyChar) {
+        if (inSettings || inControls) return;
+        if (key == KeyEvent.VK_BACK_SPACE && playerName.length() > 0) {
+            playerName = playerName.substring(0, playerName.length() - 1);
+        } else if (playerName.length() < maxChars && Character.isLetterOrDigit(keyChar)) {
+            playerName += keyChar;
+        }
     }
 }

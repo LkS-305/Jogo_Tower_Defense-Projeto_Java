@@ -1,18 +1,61 @@
 package com.neondf.entities;
 
+import com.neondf.systems.SpriteSheet;
 import java.awt.*;
+import java.awt.geom.AffineTransform; // Importante para girar
+import java.awt.image.BufferedImage;
 
 public class Enemy {
 
-    private double x, y, speed;
-    private int dmg, hp, score, shield;
-    private boolean alive = true;
+    protected double x, y, speed;
+    protected int dmg, hp, score, shield;
+    protected boolean alive = true;
 
-    // Valores padrão
-    private static int baseDmg = 10, baseHP = 10, baseScore = 10000;
-    private static double baseSpeed = 1.0;
+    protected int scale = 2;
 
-    // Construtor Simples (O que o WaveManager procura)
+    // Animação de Sprite (Para os inimigos avançados que tiverem imagem)
+    private BufferedImage[] frames;
+    private int maxFrames;
+    private int curFrame = 0;
+    private int frameCount = 0;
+    private int frameDelay = 10;
+    // ...
+    protected int width;   // <--- MUDOU PARA PROTECTED
+    protected int height;  // <--- MUDOU PARA PROTECTED
+    // ...
+    // Animação Procedural (Para o inimigo básico sem imagem)
+    private double rotationAngle = 0; // Para fazê-lo girar
+
+    protected static int baseDmg = 10, baseHP = 10, baseScore = 10000;
+    protected static double baseSpeed = 1.0;
+
+    // --- CONSTRUTOR 1: DETALHADO (Para Inimigo1, Inimigo2...) ---
+    public Enemy(double x, double y, String spritePath, int frameWidth, int frameHeight, int numFrames, int rowIndex) {
+        this.x = x;
+        this.y = y;
+        this.width = frameWidth;
+        this.height = frameHeight;
+        this.maxFrames = numFrames;
+
+        this.speed = baseSpeed;
+        this.dmg = baseDmg;
+        this.hp = baseHP;
+        this.score = baseScore;
+        this.shield = 0;
+
+        try {
+            SpriteSheet sheet = new SpriteSheet(spritePath);
+            frames = new BufferedImage[maxFrames];
+            int startY = rowIndex * height;
+            for(int i = 0; i < maxFrames; i++) {
+                frames[i] = sheet.getSprite(i * width, startY, width, height);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar sprite: " + spritePath);
+        }
+    }
+
+    // --- CONSTRUTOR 2: BÁSICO (O INIMIGO "FRACO") ---
     public Enemy(double x, double y) {
         this.x = x;
         this.y = y;
@@ -21,6 +64,9 @@ public class Enemy {
         this.hp = baseHP;
         this.score = baseScore;
         this.shield = 0;
+
+        // Não carregamos imagem aqui.
+        // O render vai detectar que 'frames' é nulo e desenhar o Losango Neon.
     }
 
     public void tick(double targetX, double targetY) {
@@ -34,15 +80,63 @@ public class Enemy {
             x += (dx / dist) * speed;
             y += (dy / dist) * speed;
         }
+
+        // Lógica de Sprite
+        if (frames != null) {
+            frameCount++;
+            if (frameCount >= frameDelay) {
+                frameCount = 0;
+                curFrame++;
+                if (curFrame >= maxFrames) curFrame = 0;
+            }
+        } else {
+            // Lógica do Inimigo Geométrico: GIRAR!
+            rotationAngle += 0.1; // Velocidade do giro
+        }
     }
 
     public void render(Graphics2D g) {
-        // Desenho Simples (Bolinha)
-        g.setColor(Color.MAGENTA);
-        g.fillOval((int) x, (int) y, 20, 20);
+        // Se tiver sprite (Inimigo 1 e 2), desenha a imagem
+        if (frames != null && frames[curFrame] != null) {
+            int drawWidth = width * scale;
+            int drawHeight = height * scale;
+            g.drawImage(frames[curFrame], (int)x - drawWidth/2, (int)y - drawHeight/2, drawWidth, drawHeight, null);
+        }
+        // Se NÃO tiver sprite (Inimigo Básico), desenha o LOSANGO NEON
+        else {
+            AffineTransform old = g.getTransform();
+
+            // Move para a posição do inimigo
+            g.translate(x, y);
+            // Gira
+            g.rotate(rotationAngle);
+
+            // Desenha um quadrado preenchido (Vermelho escuro)
+            g.setColor(new Color(150, 0, 50));
+            g.fillRect(-10, -10, 20, 20); // Centralizado
+
+            // Desenha a borda brilhante (Vermelho Neon)
+            g.setColor(Color.RED);
+            g.setStroke(new BasicStroke(2)); // Linha mais grossa
+            g.drawRect(-10, -10, 20, 20);
+
+            // Restaura a rotação para não bugar o resto do jogo
+            g.setTransform(old);
+        }
     }
 
-    // --- Getters e Setters ---
+    public Rectangle getBounds() {
+        if (frames != null) {
+            int drawWidth = width * scale;
+            int drawHeight = height * scale;
+            return new Rectangle((int) x - drawWidth/4, (int) y - drawHeight/4, drawWidth/2, drawHeight/2);
+        } else {
+            // Hitbox do Losango
+            return new Rectangle((int) x - 10, (int) y - 10, 20, 20);
+        }
+    }
+
+    // Getters e Setters
     public double getSpeed(){ return speed; }
     public void setSpeed(double speed){ this.speed = speed; }
     public int getDmg(){ return dmg; }
@@ -60,18 +154,12 @@ public class Enemy {
     public boolean isAlive() { return alive; }
     public double getX() { return x; }
     public double getY() { return y; }
-
     public void changeDmg(double multiplier){ this.dmg = (int) (multiplier * this.dmg); }
     public void changeHP(double multiplier){ this.hp = (int) (multiplier * this.hp); }
     public void changeScore(double multiplier){ this.score = (int) (multiplier * this.score); }
     public void changeSpeed(double multiplier){ this.speed = multiplier * this.speed; }
-
     public int calculateCoin(){ return this.score/10; }
-
-    public Rectangle getBounds() { return new Rectangle((int) x, (int) y, 20, 20); }
-
     public void kill() { if (this.alive) { this.alive = false; } }
-
     public void takeDamage(int damage) {
         if(this.shield > 0){
             this.shield -= damage;
@@ -81,7 +169,6 @@ public class Enemy {
             if(this.getHp() <= 0){ this.kill(); }
         }
     }
-
     public static void upgradeEnemies(){
         baseSpeed = 1.2 * baseSpeed;
         baseHP = (int) (1.2 * baseHP);

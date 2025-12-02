@@ -1,6 +1,7 @@
 package com.neondf.entities;
 
 import com.neondf.systems.SpriteSheet; // <--- Importante
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;   // <--- Importante
@@ -34,8 +35,8 @@ public class Atiradora extends Suporte {
 
     @Override
     public void onUpgrade() {
-        delay = Math.max(200, delay - 100);
-        dmg += 3;
+        delay = Math.max(300, delay - 100);
+        dmg *= 3;
         range += 30;
     }
 

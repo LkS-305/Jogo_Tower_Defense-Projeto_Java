@@ -15,18 +15,16 @@ public class Boss extends Enemy {
         super(x, y);
 
         // --- STATUS DE BOSS ---
-        this.hp = 3000;
-        this.baseHP = 3000;
-        this.dmg = 50;
-        this.speed = 0.4;
-        this.score = 50000;
+        this.changeHP(150);
+        this.changeDmg(5);
+        this.changeSpeed(0.4);
+        this.changeScore(5);
 
         // Tamanho da Hitbox
         this.width = 120;
         this.height = 120;
 
         // Importante: scale deve ser compatível com a classe mãe
-        // Se der erro aqui, certifique-se que mudou 'scale' para protected em Enemy.java
         this.scale = 1;
     }
 
@@ -135,7 +133,7 @@ public class Boss extends Enemy {
         g.fillRect(bx, by, barW, barH);
 
         g.setColor(Color.RED);
-        int fill = (int)((hp / (double)baseHP) * barW);
+        int fill = (int)((hp / (double)(baseHP*300)) * barW);
         g.fillRect(bx, by, fill, barH);
 
         g.setColor(Color.WHITE);

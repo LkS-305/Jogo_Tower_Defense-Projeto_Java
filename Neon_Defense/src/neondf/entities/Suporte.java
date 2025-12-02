@@ -93,7 +93,7 @@ public abstract class Suporte {
         if (level < maxLevel && hud.getCoins() >= cost) {
             hud.addCoin(-cost);
             level++;
-            cost *= 2;
+            cost = cost * ((level * level) + 5);
             onUpgrade();
         }
     }

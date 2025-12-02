@@ -81,7 +81,7 @@ public class HUD {
         // HP da Base
         g.setFont(new Font("Verdana", Font.BOLD, 20));
         g.setColor(NEON_CYAN);
-        g.drawString("HP BASE: " + health + "%", x, y - 10);
+        g.drawString("HP TOTAL: " + (tower.getHp()+tower.getShield()), x, y - 10);
     }
 
     private void renderStats(Graphics2D g, Tower tower) {
@@ -100,7 +100,7 @@ public class HUD {
 
         // SCORE (Roxo para diferenciar)
         g.setColor(NEON_MAGENTA);
-        g.drawString("SCORE: " + score, x, y + 25);
+        g.drawString("SCORE: " + score, x - 100, y + 25);
     }
 
     private void renderMainShop(Graphics2D g, Tower tower) {
@@ -121,13 +121,17 @@ public class HUD {
 
         drawUpgradeRow(g, "[1] Dano", tower.getCostDmg(), tower.getCostDmg() <= neonCoins, x+15, rowY);
         drawUpgradeRow(g, "[2] Velocidade", tower.getCostSpeed(), tower.getCostSpeed() <= neonCoins, x+15, rowY + spacing);
-        drawUpgradeRow(g, "[3] Perfuração", tower.getCostPierce(), tower.getCostPierce() <= neonCoins, x+15, rowY + spacing*2);
-
-        if (tower.getMultiShotLevel() < 7) {
-            drawUpgradeRow(g, "[7] Multi-Tiro", tower.getCostMultiShot(), tower.getCostMultiShot() <= neonCoins, x+15, rowY + spacing*3);
+        if (tower.getPierceLevel() < 11) {
+            drawUpgradeRow(g, "[3] Perfuração", tower.getCostPierce(), tower.getCostPierce() <= neonCoins, x+15, rowY + spacing*2);
         } else {
             g.setColor(Color.RED);
-            g.drawString("[7] Multi-Tiro (MAX)", x+15, rowY + spacing*3);
+            g.drawString("[3] Perfuração (MAX)", x+15, rowY + spacing*2);
+        }
+        if (tower.getMultiShotLevel() < 7) {
+            drawUpgradeRow(g, "[4] Multi-Tiro", tower.getCostMultiShot(), tower.getCostMultiShot() <= neonCoins, x+15, rowY + spacing*3);
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("[4] Multi-Tiro (MAX)", x+15, rowY + spacing*3);
         }
     }
 
@@ -150,9 +154,27 @@ public class HUD {
         int rowY = y + 50;
         int spacing = 20;
 
-        drawUpgradeRow(g, "[4] Atiradora", shot.getCost(), shot.getCost() <= neonCoins, x+15, rowY);
-        drawUpgradeRow(g, "[5] Médica", heal.getCost(), heal.getCost() <= neonCoins, x+15, rowY + spacing);
-        drawUpgradeRow(g, "[6] Escudeira", shield.getCost(), shield.getCost() <= neonCoins, x+15, rowY + spacing*2);
+        if (shot.getLevel() < 5) {
+            drawUpgradeRow(g, "[5] Atiradora", shot.getCost(), shot.getCost() <= neonCoins, x+15, rowY);
+
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("[5] Atiradora (MAX)", x+15, rowY);
+        }
+
+        if (heal.getLevel() < 5) {
+            drawUpgradeRow(g, "[6] Médica", heal.getCost(), heal.getCost() <= neonCoins, x+15, rowY + spacing);
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("[6] Médica (MAX)", x+15, rowY + spacing);
+        }
+        if (shield.getLevel() < 5) {
+            drawUpgradeRow(g, "[7] Escudeira", shield.getCost(), shield.getCost() <= neonCoins, x+15, rowY + spacing*2);
+        } else {
+            g.setColor(Color.RED);
+            g.drawString("[7] Escudeira (MAX)", x+15, rowY + spacing*2);
+        }
+
     }
 
     private void drawUpgradeRow(Graphics2D g, String name, int price, boolean canBuy, int x, int y) {

@@ -26,7 +26,7 @@ public class Enemy {
     // Animação Procedural (Para o inimigo básico sem imagem)
     private double rotationAngle = 0; // Para fazê-lo girar
 
-    protected static int baseDmg = 10, baseHP = 10, baseScore = 10000;
+    protected static int baseDmg = 10, baseHP = 10, baseScore = 100000;
     protected static double baseSpeed = 1.0;
 
     // --- CONSTRUTOR 1: DETALHADO (Para Inimigo1, Inimigo2...) ---
@@ -171,8 +171,8 @@ public class Enemy {
     }
     public static void upgradeEnemies(){
         baseSpeed = 1.2 * baseSpeed;
-        baseHP = (int) (1.2 * baseHP);
-        baseDmg = (int) (1.2 * baseDmg);
-        baseScore *= 2;
+        baseHP = (int) (1.5 * baseHP);
+        baseDmg = (int) (1.5 * baseDmg);
+        baseScore *= 5;
     }
 }

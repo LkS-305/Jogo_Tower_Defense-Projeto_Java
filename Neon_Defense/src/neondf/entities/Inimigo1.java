@@ -12,10 +12,12 @@ public class Inimigo1 extends Enemy {
 
         super(x, y, "/inim1.png", 80, 80, 6, 1);
 
+        this.scale = 1;
+
         // Status do Inimigo
-        this.changeScore(3.0);
+        this.changeScore(5.0);
         this.changeSpeed(0.8);
-        this.changeHP(2);
+        this.changeHP(3);
         this.changeDmg(2);
         this.setShield(this.getHp()/2);
     }

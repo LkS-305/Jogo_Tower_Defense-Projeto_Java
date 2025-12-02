@@ -410,10 +410,10 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             if (key == KeyEvent.VK_1) tower.buyUpgradeDamage(hud);
             if (key == KeyEvent.VK_2) tower.buyUpgradeSpeed(hud);
             if (key == KeyEvent.VK_3) tower.buyUpgradePierce(hud);
-            if (key == KeyEvent.VK_4) atiradora.upgrade(hud);
-            if (key == KeyEvent.VK_5) medica.upgrade(hud);
-            if (key == KeyEvent.VK_6) escudeira.upgrade(hud);
-            if (key == KeyEvent.VK_7) tower.buyUpgradeMultiShot(hud);
+            if (key == KeyEvent.VK_4) tower.buyUpgradeMultiShot(hud);
+            if (key == KeyEvent.VK_5) atiradora.upgrade(hud);
+            if (key == KeyEvent.VK_6) medica.upgrade(hud);
+            if (key == KeyEvent.VK_7) escudeira.upgrade(hud);
 
             if (key == KeyEvent.VK_E) {
                 if (tower.isUltimateReady()) {

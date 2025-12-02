@@ -37,10 +37,7 @@ public class Tower {
     private int multiShotLevel = 0;
 
     // Custos
-    private int costMultiShot = 50;
-    private int costDmg = 5;
-    private int costSpeed = 5;
-    private int costPierce = 10;
+    private int costMultiShot = 50, costDmg = 5, costSpeed = 5, costPierce = 10;
 
     public Tower(double x, double y) {
         this.x = x;
@@ -205,26 +202,90 @@ public class Tower {
     }
 
     // --- GETTERS E SETTERS ---
-    public int getMaxHp() { return maxHp; }
-    public void addEnergy(int amount) { this.energy += amount; if (this.energy > maxEnergy) this.energy = maxEnergy; }
-    public boolean isUltimateReady() { return energy >= maxEnergy; }
-    public void resetEnergy() { this.energy = 0; }
     public int getEnergy() { return energy; }
     public int getMaxEnergy() { return maxEnergy; }
-    public void takeDamage(int amount) { if (shield > 0) { shield -= amount; if (shield < 0) { hp += shield; shield = 0; } } else { this.hp -= amount; } if (hp < 0) hp = 0; }
-    public void heal(int amount) { this.hp += amount; if (this.hp > maxHp) this.hp = maxHp; }
-    public void addShield(int amount) { this.shield += amount; if (this.shield > maxShield) this.shield = maxShield; }
-    public void setMaxShield(int max) { this.maxShield = max; if (this.shield < max) this.shield += (max/10); }
-    public void buyUpgradeDamage(HUD hud) { if (hud.getCoins() >= costDmg) { hud.addCoin(-costDmg); currentDmg += 5; costDmg *= 2; totalUpgrades++; } }
-    public void buyUpgradeSpeed(HUD hud) { if (hud.getCoins() >= costSpeed) { hud.addCoin(-costSpeed); currentSpeed += 2.0; costSpeed *= 2; totalUpgrades++; } }
-    public void buyUpgradePierce(HUD hud) { if (hud.getCoins() >= costPierce) { hud.addCoin(-costPierce); currentPierce += 1; costPierce *= 2; totalUpgrades++; } }
-    public void buyUpgradeMultiShot(HUD hud) { if (multiShotLevel < 7 && hud.getCoins() >= costMultiShot) { hud.addCoin(-costMultiShot); multiShotLevel++; costMultiShot *= 2; totalUpgrades++; } }
+    public int getHp() { return hp; }
+    public int getMaxHp() { return maxHp; }
+    public int getShield() { return shield; }
+    public int getMaxShield() { return maxShield; }
+
+    public void addEnergy(int amount) {
+        this.energy += amount;
+        if (this.energy > maxEnergy) this.energy = maxEnergy;
+    }
+
+    public boolean isUltimateReady() { return energy >= maxEnergy; }
+
+    public void resetEnergy() { this.energy = 0; }
+
+    public void takeDamage(int amount) {
+        if (shield > 0) {
+            shield -= amount;
+            if (shield < 0) {
+                hp += shield;
+                shield = 0;
+            }
+        } else {
+            this.hp -= amount;
+        }
+        if (hp < 0) hp = 0;
+    }
+
+    public void heal(int amount) {
+        this.hp += amount;
+        if (this.hp > maxHp) this.hp = maxHp;
+    }
+
+    public void addShield(int amount) {
+        this.shield += amount;
+        if (this.shield > maxShield) this.shield = maxShield;
+    }
+    public void setMaxShield(int max) {
+        this.maxShield = max;
+        if (this.shield < max) this.shield += (max / 10);
+    }
+
+    public void buyUpgradeDamage(HUD hud) {
+        if (hud.getCoins() >= costDmg) {
+            hud.addCoin(-costDmg);
+            currentDmg += 5;
+            costDmg = (int) (costDmg * 1.8);
+            totalUpgrades++;
+        }
+    }
+    public void buyUpgradeSpeed(HUD hud) {
+        if (hud.getCoins() >= costSpeed) {
+            hud.addCoin(-costSpeed);
+            currentSpeed += 2.0;
+            costSpeed = (int) (costSpeed * 1.5);
+            totalUpgrades++;
+        }
+    }
+    public void buyUpgradePierce(HUD hud) {
+        if (hud.getCoins() >= costPierce && currentPierce <= 11) {
+            hud.addCoin(-costPierce);
+            currentPierce += 1;
+            costPierce *= 4;
+            totalUpgrades++;
+        }
+    }
+    public void buyUpgradeMultiShot(HUD hud) {
+        if (multiShotLevel < 7 && hud.getCoins() >= costMultiShot) {
+            hud.addCoin(-costMultiShot);
+            multiShotLevel++;
+            costMultiShot *= 10;
+            totalUpgrades++;
+        }
+    }
+
     public int getCostDmg() { return costDmg; }
     public int getCostSpeed() { return costSpeed; }
     public int getCostPierce() { return costPierce; }
     public int getCostMultiShot() { return costMultiShot; }
+
     public int getMultiShotLevel() { return multiShotLevel; }
-    public int getHp() { return hp; }
+    public int getPierceLevel() { return (currentPierce - 1); }
+
     public double getCenterX() { return x + size / 2.0; }
     public double getCenterY() { return y + size / 2.0; }
     public void updateDirection(boolean up, boolean down, boolean left, boolean right) {

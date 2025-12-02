@@ -1,6 +1,5 @@
 package com.neondf.entities;
 
-import com.neondf.systems.HUD;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;

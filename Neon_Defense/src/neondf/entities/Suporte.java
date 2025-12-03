@@ -1,5 +1,6 @@
 package com.neondf.entities;
 
+import com.neondf.systems.AudioPlayer;
 import com.neondf.systems.HUD;
 import java.awt.*;
 import java.awt.geom.AffineTransform; // <--- FALTAVA ESSA LINHA!
@@ -89,12 +90,13 @@ public abstract class Suporte {
 
     public abstract void onUpgrade();
 
-    public void upgrade(HUD hud) {
+    public void upgrade(HUD hud, AudioPlayer upgradeSound) {
         if (level < maxLevel && hud.getCoins() >= cost) {
             hud.addCoin(-cost);
             level++;
             cost = cost * ((level * level) + 5);
             onUpgrade();
+            upgradeSound.play();
         }
     }
 

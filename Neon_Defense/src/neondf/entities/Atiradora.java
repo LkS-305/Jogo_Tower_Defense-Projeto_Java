@@ -16,7 +16,7 @@ public class Atiradora extends Suporte {
     private double currentAngle = 0;
     private Enemy currentTarget = null;
 
-    // --- A IMAGEM DA BALA QUE ESTAVA FALTANDO ---
+    // --- A IMAGEM DA BALA ---
     private BufferedImage bulletSprite;
 
     public Atiradora() {

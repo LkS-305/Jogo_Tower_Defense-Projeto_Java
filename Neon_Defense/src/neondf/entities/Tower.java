@@ -1,5 +1,6 @@
 package com.neondf.entities;
 
+import com.neondf.systems.AudioPlayer;
 import com.neondf.systems.HUD;
 import com.neondf.systems.SpriteSheet;
 
@@ -245,36 +246,40 @@ public class Tower {
         if (this.shield < max) this.shield += (max / 10);
     }
 
-    public void buyUpgradeDamage(HUD hud) {
+    public void buyUpgradeDamage(HUD hud, AudioPlayer upgradeSound) {
         if (hud.getCoins() >= costDmg) {
             hud.addCoin(-costDmg);
             currentDmg += 5;
             costDmg = (int) (costDmg * 1.8);
             totalUpgrades++;
+            upgradeSound.play();
         }
     }
-    public void buyUpgradeSpeed(HUD hud) {
+    public void buyUpgradeSpeed(HUD hud, AudioPlayer upgradeSound) {
         if (hud.getCoins() >= costSpeed) {
             hud.addCoin(-costSpeed);
             currentSpeed += 2.0;
             costSpeed = (int) (costSpeed * 1.5);
             totalUpgrades++;
+            upgradeSound.play();
         }
     }
-    public void buyUpgradePierce(HUD hud) {
+    public void buyUpgradePierce(HUD hud, AudioPlayer upgradeSound) {
         if (hud.getCoins() >= costPierce && currentPierce <= 11) {
             hud.addCoin(-costPierce);
             currentPierce += 1;
             costPierce *= 4;
             totalUpgrades++;
+            upgradeSound.play();
         }
     }
-    public void buyUpgradeMultiShot(HUD hud) {
+    public void buyUpgradeMultiShot(HUD hud, AudioPlayer upgradeSound) {
         if (multiShotLevel < 7 && hud.getCoins() >= costMultiShot) {
             hud.addCoin(-costMultiShot);
             multiShotLevel++;
             costMultiShot *= 10;
             totalUpgrades++;
+            upgradeSound.play();
         }
     }
 

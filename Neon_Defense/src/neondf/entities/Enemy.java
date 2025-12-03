@@ -19,6 +19,7 @@ public class Enemy {
     private int curFrame = 0;
     private int frameCount = 0;
     private int frameDelay = 10;
+
     // ...
     protected int width;   // <--- MUDOU PARA PROTECTED
     protected int height;  // <--- MUDOU PARA PROTECTED
@@ -26,7 +27,13 @@ public class Enemy {
     // Animação Procedural (Para o inimigo básico sem imagem)
     private double rotationAngle = 0; // Para fazê-lo girar
 
-    protected static int baseDmg = 10, baseHP = 10, baseScore = 10000;
+    public enum dificuldade{
+        FACIL,
+        NORMAL,
+        DIFICIL
+    }
+    private static dificuldade dificuldadeJogo = dificuldade.NORMAL;
+    protected static int baseDmg = 10, baseHP = 10, baseScore = 50;
     protected static double baseSpeed = 1.0;
 
     // --- CONSTRUTOR 1: DETALHADO (Para Inimigo1, Inimigo2...) ---
@@ -37,10 +44,22 @@ public class Enemy {
         this.height = frameHeight;
         this.maxFrames = numFrames;
 
-        this.speed = baseSpeed;
-        this.dmg = baseDmg;
-        this.hp = baseHP;
-        this.score = baseScore;
+        if(dificuldadeJogo == dificuldade.NORMAL){
+            this.speed = baseSpeed;
+            this.dmg = baseDmg;
+            this.hp = baseHP;
+            this.score = baseScore;
+        } else if (dificuldadeJogo == dificuldade.FACIL) {
+            this.speed = baseSpeed * 0.7;
+            this.dmg = baseDmg / 2;
+            this.hp = baseHP / 2;
+            this.score = baseScore * 2;
+        } else if (dificuldadeJogo == dificuldade.DIFICIL) {
+            this.speed = baseSpeed * 1.5;
+            this.dmg = (baseDmg * 3) / 2;
+            this.hp = (baseHP * 3) / 2;
+            this.score = (baseScore * 4) / 5;
+        }
         this.shield = 0;
 
         try {
@@ -59,10 +78,22 @@ public class Enemy {
     public Enemy(double x, double y) {
         this.x = x;
         this.y = y;
-        this.speed = baseSpeed;
-        this.dmg = baseDmg;
-        this.hp = baseHP;
-        this.score = baseScore;
+        if(dificuldadeJogo == dificuldade.NORMAL){
+            this.speed = baseSpeed;
+            this.dmg = baseDmg;
+            this.hp = baseHP;
+            this.score = baseScore;
+        } else if (dificuldadeJogo == dificuldade.FACIL) {
+            this.speed = baseSpeed * 0.7;
+            this.dmg = baseDmg / 2;
+            this.hp = baseHP / 2;
+            this.score = baseScore * 2;
+        } else if (dificuldadeJogo == dificuldade.DIFICIL) {
+            this.speed = baseSpeed * 1.5;
+            this.dmg = (baseDmg * 3) / 2;
+            this.hp = (baseHP * 3) / 2;
+            this.score = (baseScore * 4) / 5;
+        }
         this.shield = 0;
 
         // Não carregamos imagem aqui.
@@ -136,6 +167,16 @@ public class Enemy {
         }
     }
 
+    public static dificuldade getDificuldade() {
+        return dificuldadeJogo;
+    }
+
+    public static void changeDifficulty(dificuldade dif){
+        if(dificuldadeJogo != dif){
+            dificuldadeJogo = dif;
+        }
+    }
+
     // Getters e Setters
     public double getSpeed(){ return speed; }
     public void setSpeed(double speed){ this.speed = speed; }
@@ -169,10 +210,20 @@ public class Enemy {
             if(this.getHp() <= 0){ this.kill(); }
         }
     }
+
+    public static void incDifWave(){
+        baseScore += 50;
+        baseHP = (int) (1.2 * baseHP);
+    }
+
     public static void upgradeEnemies(){
         baseSpeed = 1.2 * baseSpeed;
-        baseHP = (int) (1.2 * baseHP);
-        baseDmg = (int) (1.2 * baseDmg);
-        baseScore *= 2;
+        baseHP = (2 * baseHP);
+        baseDmg = (int) (1.4 * baseDmg);
+        baseScore *= 5;
+    }
+
+    public static void resetEnemyStats(){
+        baseDmg = 10; baseHP = 10; baseScore = 50; baseSpeed = 1.0;
     }
 }

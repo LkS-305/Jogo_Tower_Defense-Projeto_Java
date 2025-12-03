@@ -1,5 +1,7 @@
 package com.neondf.systems;
 
+import com.neondf.entities.Enemy;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -163,9 +165,30 @@ public class Menu {
 
         g.setFont(new Font("Consolas", Font.PLAIN, 18));
         g.setColor(Color.GRAY);
-        drawCenteredText(g, "Dificuldade: [ NORMAL ]", 220);
-        drawCenteredText(g, "Som: [ DESATIVADO ]", 260);
-
+        g.drawString("Dificuldade: [F] [N] [D]",290, 220);
+        switch (Enemy.getDificuldade()){
+            case NORMAL:
+                g.setColor(Color.YELLOW);
+                g.drawString("[N]",460, 220);
+                break;
+            case FACIL:
+                g.setColor(Color.GREEN);
+                g.drawString("[F]",420, 220);
+                break;
+            case DIFICIL:
+                g.setColor(Color.RED);
+                g.drawString("[D]",500, 220);
+                break;
+        }
+        g.setColor(Color.GRAY);
+        g.drawString("Musica: ", 290,260);
+        g.drawString("[-]", 370, 260);
+        g.drawString((int)(AudioPlayer.getVolume(AudioPlayer.TipoAudio.MUSICA) * 100) + "%", 430, 260);
+        g.drawString("[+]", 490, 260);
+        g.drawString("Efeitos: ", 290,300);
+        g.drawString("[M]", 370, 300);
+        g.drawString((int)(AudioPlayer.getVolume(AudioPlayer.TipoAudio.EFEITO) * 100) + "%", 430, 300);
+        g.drawString("[P]", 490, 300);
         drawNeonButton(g, controlsBtn, "CONTROLES", mouseX, mouseY, Color.ORANGE);
 
         g.setColor(Color.YELLOW);
@@ -207,14 +230,14 @@ public class Menu {
         g.drawString("[1] Dano", rightX, y); y+=25;
         g.drawString("[2] Velocidade", rightX, y); y+=25;
         g.drawString("[3] Perfuração", rightX, y); y+=25;
-        g.drawString("[7] Multi-Tiro", rightX, y); y+=40;
+        g.drawString("[4] Multi-Tiro", rightX, y); y+=40;
 
         g.setColor(NEON_CYAN);
         g.drawString("SUPORTE:", rightX, y); y+=30;
         g.setColor(Color.WHITE);
-        g.drawString("[4] Atiradora", rightX, y); y+=25;
-        g.drawString("[5] Médica", rightX, y); y+=25;
-        g.drawString("[6] Escudeira", rightX, y);
+        g.drawString("[5] Atiradora", rightX, y); y+=25;
+        g.drawString("[6] Médica", rightX, y); y+=25;
+        g.drawString("[7] Escudeira", rightX, y);
 
         g.setColor(Color.YELLOW);
         drawCenteredText(g, "[ESC] FECHAR MANUAL", 550);

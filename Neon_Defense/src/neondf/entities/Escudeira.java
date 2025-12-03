@@ -1,13 +1,13 @@
 package com.neondf.entities;
 
-import com.neondf.systems.HUD;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
 public class Escudeira extends Suporte {
     private int maxShield = 0;
-    private long lastRegen = 0;
+    private long lastShield = 0;
+    private int shieldDelay = 5000;
 
     public Escudeira() {
         super("Escudeira", new Color(0, 100, 255));
@@ -17,6 +17,7 @@ public class Escudeira extends Suporte {
     @Override
     public void onUpgrade() {
         maxShield += 20;
+        shieldDelay -= 500;
     }
 
     @Override
@@ -30,9 +31,9 @@ public class Escudeira extends Suporte {
         tower.setMaxShield(maxShield);
 
         long now = System.currentTimeMillis();
-        if (now - lastRegen > 2000) {
-            tower.addShield(level * 2);
-            lastRegen = now;
+        if (now - lastShield > shieldDelay && tower.getShield() < tower.getMaxShield()) {
+            tower.addShield(level * 5);
+            lastShield = now;
         }
     }
 

@@ -1,5 +1,6 @@
 package com.neondf.entities;
 
+import com.neondf.systems.AudioPlayer;
 import com.neondf.systems.HUD;
 import java.awt.*;
 import java.awt.geom.AffineTransform; // <--- FALTAVA ESSA LINHA!
@@ -12,7 +13,7 @@ public abstract class Suporte {
     protected double x, y;
     protected int level = 0;
     protected int maxLevel = 5;
-    protected int cost = 50;
+    protected int cost = 250;
     protected int range = 100;
 
     // Cor padrão agora é Verde Neon para aspecto de suporte
@@ -89,12 +90,13 @@ public abstract class Suporte {
 
     public abstract void onUpgrade();
 
-    public void upgrade(HUD hud) {
+    public void upgrade(HUD hud, AudioPlayer upgradeSound) {
         if (level < maxLevel && hud.getCoins() >= cost) {
             hud.addCoin(-cost);
             level++;
-            cost *= 2;
+            cost = cost * ((level * level) + 5);
             onUpgrade();
+            upgradeSound.play();
         }
     }
 

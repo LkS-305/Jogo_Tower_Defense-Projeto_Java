@@ -27,6 +27,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     private final ArrayList<Enemy> enemies = new ArrayList<>();
     private final ArrayList<Shockwave> shockwaves = new ArrayList<>();
     private final ArrayList<DamageText> damageTexts = new ArrayList<>();
+    private final ArrayList<AudioPlayer> audioPlayers = new ArrayList<>();
 
     private WaveManager waveManager;
     private HUD hud;
@@ -47,11 +48,19 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     private int shakeTimer = 0;
     private boolean highScoreSaved = false;
 
+    private final AudioPlayer musicaJogo, upgradeSound, ultimateSound, soundTest;
+
     public Game() {
         setPreferredSize(new Dimension(800, 600));
         addKeyListener(this);
         addMouseListener(this);
-
+        musicaJogo = new AudioPlayer("/music.wav", AudioPlayer.TipoAudio.MUSICA);
+        audioPlayers.add(musicaJogo);
+        upgradeSound = new AudioPlayer("/cha_ching.wav",  AudioPlayer.TipoAudio.EFEITO);
+        audioPlayers.add(upgradeSound);
+        ultimateSound = new AudioPlayer("/electricity.wav", AudioPlayer.TipoAudio.EFEITO);
+        audioPlayers.add(ultimateSound);
+        soundTest = new AudioPlayer("/test.wav", AudioPlayer.TipoAudio.TESTE);
         try {
             backgrounds = new BufferedImage[3];
             backgrounds[0] = new SpriteSheet("/background1.png").getSprite();
@@ -138,7 +147,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
             for (Shockwave sw : shockwaves) {
                 if (sw.collidesWith(e)) {
-                    int dmg = 500;
+                    int dmg = 5*tower.getCurrentDmg();
                     e.takeDamage(dmg);
                     damageTexts.add(new DamageText(e.getX(), e.getY()-20, dmg));
                     if (!e.isAlive()) {
@@ -206,6 +215,10 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             menu.render(g, mouseX, mouseY);
         }
         else if (gameState == STATE.PLAYING || gameState == STATE.PAUSED) {
+            if(!musicaJogo.isPlaying()){
+                musicaJogo.loop();
+            }
+
             tower.render(g);
             atiradora.render(g);
             medica.render(g);
@@ -257,6 +270,10 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
         // --- AQUI ESTÁ A TELA "SYSTEM FAILURE" (Visual Legal) DE VOLTA ---
         else if (gameState == STATE.GAME_OVER) {
+            if(musicaJogo.isPlaying()){
+                musicaJogo.stop();
+            }
+
             g.setTransform(originalTransform);
             long now = System.currentTimeMillis();
 
@@ -366,8 +383,42 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
         if (gameState == STATE.MENU) {
             if (menu.inControls) { if (key == KeyEvent.VK_ESCAPE) menu.inControls = false; return; }
-            if (menu.inSettings) { if (key == KeyEvent.VK_ESCAPE) menu.inSettings = false; return; }
-
+            if (menu.inSettings) {
+                if (key == KeyEvent.VK_ESCAPE) menu.inSettings = false;
+                if (key == KeyEvent.VK_PLUS || key == KeyEvent.VK_EQUALS) {
+                    AudioPlayer.incVolume(AudioPlayer.TipoAudio.MUSICA);
+                    AudioPlayer.updateAllVolumes(audioPlayers);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.MUSICA);
+                }
+                if (key == KeyEvent.VK_MINUS){
+                    AudioPlayer.decVolume(AudioPlayer.TipoAudio.MUSICA);
+                    AudioPlayer.updateAllVolumes(audioPlayers);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.MUSICA);
+                }
+                if (key == KeyEvent.VK_P){
+                    AudioPlayer.incVolume(AudioPlayer.TipoAudio.EFEITO);
+                    AudioPlayer.updateAllVolumes(audioPlayers);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                if (key == KeyEvent.VK_M) {
+                    AudioPlayer.decVolume(AudioPlayer.TipoAudio.EFEITO);
+                    AudioPlayer.updateAllVolumes(audioPlayers);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                if (key == KeyEvent.VK_F) {
+                    Enemy.changeDifficulty(Enemy.dificuldade.FACIL);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                if (key == KeyEvent.VK_N) {
+                    Enemy.changeDifficulty(Enemy.dificuldade.NORMAL);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                if (key == KeyEvent.VK_D){
+                    Enemy.changeDifficulty(Enemy.dificuldade.DIFICIL);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                return;
+            }
             menu.handleTyping(key, e.getKeyChar());
             if (key == KeyEvent.VK_ENTER) {
                 resetGame();
@@ -407,24 +458,24 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             if (key == KeyEvent.VK_D || key == KeyEvent.VK_RIGHT) right = true;
             if (key == KeyEvent.VK_SPACE) isShooting = true;
 
-            if (key == KeyEvent.VK_1) tower.buyUpgradeDamage(hud);
-            if (key == KeyEvent.VK_2) tower.buyUpgradeSpeed(hud);
-            if (key == KeyEvent.VK_3) tower.buyUpgradePierce(hud);
-            if (key == KeyEvent.VK_4) atiradora.upgrade(hud);
-            if (key == KeyEvent.VK_5) medica.upgrade(hud);
-            if (key == KeyEvent.VK_6) escudeira.upgrade(hud);
-            if (key == KeyEvent.VK_7) tower.buyUpgradeMultiShot(hud);
+            if (key == KeyEvent.VK_1) tower.buyUpgradeDamage(hud, upgradeSound);
+            if (key == KeyEvent.VK_2) tower.buyUpgradeSpeed(hud, upgradeSound);
+            if (key == KeyEvent.VK_3) tower.buyUpgradePierce(hud, upgradeSound);
+            if (key == KeyEvent.VK_4) tower.buyUpgradeMultiShot(hud, upgradeSound);
+            if (key == KeyEvent.VK_5) atiradora.upgrade(hud, upgradeSound);
+            if (key == KeyEvent.VK_6) medica.upgrade(hud, upgradeSound);
+            if (key == KeyEvent.VK_7) escudeira.upgrade(hud, upgradeSound);
 
             if (key == KeyEvent.VK_E) {
                 if (tower.isUltimateReady()) {
                     shockwaves.add(new Shockwave(tower.getCenterX(), tower.getCenterY()));
                     tower.resetEnergy();
                     shakeTimer = 20;
+                    ultimateSound.play();
                 }
             }
         }
     }
-
     @Override
     public void mousePressed(MouseEvent e) {
         if (gameState == STATE.MENU) {
@@ -457,6 +508,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     private void resetGame() {
         bullets.clear();
         enemies.clear();
+        Enemy.resetEnemyStats();
         damageTexts.clear();
         shockwaves.clear();
         tower = new Tower(370, 270);

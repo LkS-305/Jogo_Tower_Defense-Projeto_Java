@@ -240,7 +240,6 @@ public class Tower {
     }
     public void setMaxShield(int max) {
         this.maxShield = max;
-        if (this.shield < max) this.shield += (max / 10);
     }
 
     public void buyUpgradeDamage(HUD hud, AudioPlayer upgradeSound) {

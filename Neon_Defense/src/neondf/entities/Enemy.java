@@ -19,6 +19,7 @@ public class Enemy {
     private int curFrame = 0;
     private int frameCount = 0;
     private int frameDelay = 10;
+
     // ...
     protected int width;   // <--- MUDOU PARA PROTECTED
     protected int height;  // <--- MUDOU PARA PROTECTED
@@ -26,6 +27,12 @@ public class Enemy {
     // Animação Procedural (Para o inimigo básico sem imagem)
     private double rotationAngle = 0; // Para fazê-lo girar
 
+    public enum dificuldade{
+        FACIL,
+        NORMAL,
+        DIFICIL
+    }
+    private static dificuldade dificuldadeJogo = dificuldade.NORMAL;
     protected static int baseDmg = 10, baseHP = 10, baseScore = 100000;
     protected static double baseSpeed = 1.0;
 
@@ -37,10 +44,22 @@ public class Enemy {
         this.height = frameHeight;
         this.maxFrames = numFrames;
 
-        this.speed = baseSpeed;
-        this.dmg = baseDmg;
-        this.hp = baseHP;
-        this.score = baseScore;
+        if(dificuldadeJogo == dificuldade.NORMAL){
+            this.speed = baseSpeed;
+            this.dmg = baseDmg;
+            this.hp = baseHP;
+            this.score = baseScore;
+        } else if (dificuldadeJogo == dificuldade.FACIL) {
+            this.speed = baseSpeed * 0.7;
+            this.dmg = baseDmg / 2;
+            this.hp = baseHP / 2;
+            this.score = baseScore * 2;
+        } else if (dificuldadeJogo == dificuldade.DIFICIL) {
+            this.speed = baseSpeed * 1.5;
+            this.dmg = (baseDmg * 3) / 2;
+            this.hp = (baseHP * 3) / 2;
+            this.score = (baseScore * 4) / 5;
+        }
         this.shield = 0;
 
         try {
@@ -59,10 +78,22 @@ public class Enemy {
     public Enemy(double x, double y) {
         this.x = x;
         this.y = y;
-        this.speed = baseSpeed;
-        this.dmg = baseDmg;
-        this.hp = baseHP;
-        this.score = baseScore;
+        if(dificuldadeJogo == dificuldade.NORMAL){
+            this.speed = baseSpeed;
+            this.dmg = baseDmg;
+            this.hp = baseHP;
+            this.score = baseScore;
+        } else if (dificuldadeJogo == dificuldade.FACIL) {
+            this.speed = baseSpeed * 0.7;
+            this.dmg = baseDmg / 2;
+            this.hp = baseHP / 2;
+            this.score = baseScore * 2;
+        } else if (dificuldadeJogo == dificuldade.DIFICIL) {
+            this.speed = baseSpeed * 1.5;
+            this.dmg = (baseDmg * 3) / 2;
+            this.hp = (baseHP * 3) / 2;
+            this.score = (baseScore * 4) / 5;
+        }
         this.shield = 0;
 
         // Não carregamos imagem aqui.
@@ -133,6 +164,16 @@ public class Enemy {
         } else {
             // Hitbox do Losango
             return new Rectangle((int) x - 10, (int) y - 10, 20, 20);
+        }
+    }
+
+    public static dificuldade getDificuldade() {
+        return dificuldadeJogo;
+    }
+
+    public static void changeDifficulty(dificuldade dif){
+        if(dificuldadeJogo != dif){
+            dificuldadeJogo = dif;
         }
     }
 

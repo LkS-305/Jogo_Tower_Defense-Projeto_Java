@@ -405,6 +405,18 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
                     AudioPlayer.updateAllVolumes(audioPlayers);
                     soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
                 }
+                if (key == KeyEvent.VK_F) {
+                    Enemy.changeDifficulty(Enemy.dificuldade.FACIL);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                if (key == KeyEvent.VK_N) {
+                    Enemy.changeDifficulty(Enemy.dificuldade.NORMAL);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
+                if (key == KeyEvent.VK_D){
+                    Enemy.changeDifficulty(Enemy.dificuldade.DIFICIL);
+                    soundTest.testVolume(AudioPlayer.TipoAudio.EFEITO);
+                }
                 return;
             }
             menu.handleTyping(key, e.getKeyChar());

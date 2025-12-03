@@ -1,5 +1,7 @@
 package com.neondf.systems;
 
+import com.neondf.entities.Enemy;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -163,7 +165,22 @@ public class Menu {
 
         g.setFont(new Font("Consolas", Font.PLAIN, 18));
         g.setColor(Color.GRAY);
-        drawCenteredText(g, "Dificuldade: [ NORMAL ]", 220);
+        g.drawString("Dificuldade: [F] [N] [D]",290, 220);
+        switch (Enemy.getDificuldade()){
+            case NORMAL:
+                g.setColor(Color.YELLOW);
+                g.drawString("[N]",460, 220);
+                break;
+            case FACIL:
+                g.setColor(Color.GREEN);
+                g.drawString("[F]",420, 220);
+                break;
+            case DIFICIL:
+                g.setColor(Color.RED);
+                g.drawString("[D]",500, 220);
+                break;
+        }
+        g.setColor(Color.GRAY);
         g.drawString("Musica: ", 290,260);
         g.drawString("[-]", 370, 260);
         g.drawString((int)(AudioPlayer.getVolume(AudioPlayer.TipoAudio.MUSICA) * 100) + "%", 430, 260);

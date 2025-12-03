@@ -133,7 +133,7 @@ public class Boss extends Enemy {
         g.fillRect(bx, by, barW, barH);
 
         g.setColor(Color.RED);
-        int fill = (int)((hp / (double)(baseHP*300)) * barW);
+        int fill = (int)((hp / (double)(baseHP*150)) * barW);
         g.fillRect(bx, by, fill, barH);
 
         g.setColor(Color.WHITE);

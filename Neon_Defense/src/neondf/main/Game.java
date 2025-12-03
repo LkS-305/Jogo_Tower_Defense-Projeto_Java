@@ -521,8 +521,4 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         highScoreSaved = false;
     }
     public Tower getTower() { return tower; }
-    public static void main(String[] args) {
-        Game game = new Game();
-        new Window(800, 600, "🟣 Neon Defense - Ultimate", game);
-    }
 }

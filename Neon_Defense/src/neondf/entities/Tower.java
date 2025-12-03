@@ -38,7 +38,7 @@ public class Tower {
     private int multiShotLevel = 0;
 
     // Custos
-    private int costMultiShot = 50, costDmg = 5, costSpeed = 5, costPierce = 10;
+    private int costMultiShot = 500, costDmg = 5, costSpeed = 5, costPierce = 10;
 
     public Tower(double x, double y) {
         this.x = x;
@@ -76,10 +76,6 @@ public class Tower {
             if (multiShotLevel >= 1) shootBullet(bullets, angle + Math.PI, currentBulletSprite, currentScale);
             if (multiShotLevel >= 2) shootBullet(bullets, angle - Math.PI/2, currentBulletSprite, currentScale);
             if (multiShotLevel >= 3) shootBullet(bullets, angle + Math.PI/2, currentBulletSprite, currentScale);
-            if (multiShotLevel >= 4) shootBullet(bullets, angle + Math.PI/4, currentBulletSprite, currentScale);
-            if (multiShotLevel >= 5) shootBullet(bullets, angle - Math.PI/4, currentBulletSprite, currentScale);
-            if (multiShotLevel >= 6) shootBullet(bullets, angle + 3*Math.PI/4, currentBulletSprite, currentScale);
-            if (multiShotLevel >= 7) shootBullet(bullets, angle - 3*Math.PI/4, currentBulletSprite, currentScale);
         }
     }
 
@@ -209,6 +205,7 @@ public class Tower {
     public int getMaxHp() { return maxHp; }
     public int getShield() { return shield; }
     public int getMaxShield() { return maxShield; }
+    public int getCurrentDmg() { return currentDmg; }
 
     public void addEnergy(int amount) {
         this.energy += amount;
@@ -250,7 +247,7 @@ public class Tower {
         if (hud.getCoins() >= costDmg) {
             hud.addCoin(-costDmg);
             currentDmg += 5;
-            costDmg = (int) (costDmg * 1.8);
+            costDmg = (int) (costDmg * 1.5);
             totalUpgrades++;
             upgradeSound.play();
         }
@@ -274,10 +271,10 @@ public class Tower {
         }
     }
     public void buyUpgradeMultiShot(HUD hud, AudioPlayer upgradeSound) {
-        if (multiShotLevel < 7 && hud.getCoins() >= costMultiShot) {
+        if (multiShotLevel < 3 && hud.getCoins() >= costMultiShot) {
             hud.addCoin(-costMultiShot);
             multiShotLevel++;
-            costMultiShot *= 10;
+            costMultiShot *= 50;
             totalUpgrades++;
             upgradeSound.play();
         }

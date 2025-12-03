@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class Medica extends Suporte {
 
     private long lastHeal = 0;
-    private int healDelay = 1000;
+    private int healDelay = 3000;
     private int healAmount = 5;
 
     public Medica() {
@@ -17,7 +17,7 @@ public class Medica extends Suporte {
 
     @Override
     public void onUpgrade() {
-        healAmount *= 5;
+        healAmount += 5;
         healDelay = Math.max(500, healDelay - 300);
     }
 

@@ -13,7 +13,7 @@ public class AudioPlayer {
     }
     private Clip clip;
     private FloatControl volumeControl;
-    private static float volumeMusica, volumeEfeito, volumeTeste;
+    private static float volumeMusica, volumeEfeito;
     private final TipoAudio tipo;
     public AudioPlayer(String filePath,  TipoAudio tipo){
         this.tipo = tipo;
@@ -124,7 +124,7 @@ public class AudioPlayer {
     }
 
     public void testVolume(TipoAudio tipo){
-        volumeTeste = getVolume(tipo);
+        float volumeTeste = getVolume(tipo);
         if(volumeTeste <= 0f){
             volumeControl.setValue(-80.0f);
         } else{

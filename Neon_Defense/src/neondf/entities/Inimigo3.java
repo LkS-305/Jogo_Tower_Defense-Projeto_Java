@@ -1,7 +1,7 @@
 package com.neondf.entities;
 
 public class Inimigo3 extends Enemy {
-
+    private final double hpMultiplier = 0.8, dmgMultiplier = 2, speedMultiplier = 1.5, scoreMultiplier = 5;
     public Inimigo3(double x, double y) {
         // --- CONFIGURAÇÃO DO REAPER (INIMIGO 3) ---
         // Caminho: "/sprites/inim3.png"
@@ -17,10 +17,10 @@ public class Inimigo3 extends Enemy {
         this.scale = 2;
 
         // --- STATUS (Rápido e Frágil) ---
-        this.changeScore(10.0);
-        this.changeSpeed(1.5);   // Mais rápido que o normal (1.0)
-        this.changeHP(0.8);      // Menos vida (morre rápido)
-        this.changeDmg(0.5);     // Dano baixo
+        this.changeScore(scoreMultiplier);
+        this.changeSpeed(speedMultiplier);   // Mais rápido que o normal (1.0)
+        this.changeHP(hpMultiplier);      // Menos vida (morre rápido)
+        this.changeDmg(dmgMultiplier);     // Dano baixo
         this.setShield(0);       // Sem escudo
     }
 }

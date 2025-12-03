@@ -119,10 +119,16 @@ public class WaveManager { // <--- Veja, o nome bate com o arquivo!
         this.enemiesSpawned = 0;
         this.enemiesAlive = 0;
         this.waveStartTime = System.currentTimeMillis();
+        Enemy.incDifWave();
         this.enemySpawner();
 
         if (this.currentWave >= 5 && this.currentWave % 5 == 0) {
-            Enemy.upgradeEnemies();
+            if(currentWave == 5){
+                Enemy.upgradeEnemies();
+            }
+            if(this.currentWave >= 10){
+                Enemy.incDifWave();
+            }
             this.spawnInterval -= 200L;
         }
     }

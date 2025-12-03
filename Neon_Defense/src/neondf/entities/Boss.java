@@ -10,15 +10,15 @@ public class Boss extends Enemy {
     private double rotateAngleOuter = 0;
     private double rotateAngleInner = 0;
     private double auraAngle = 0; // Nova variável para a aura
-
+    private final double hpMultiplier = 150.0, dmgMultiplier = 5.0, speedMultiplier = 0.4, scoreMultiplier = 10;
     public Boss(double x, double y) {
         super(x, y);
 
         // --- STATUS DE BOSS ---
-        this.changeHP(150);
-        this.changeDmg(5);
-        this.changeSpeed(0.4);
-        this.changeScore(5);
+        this.changeHP(hpMultiplier);
+        this.changeDmg(dmgMultiplier);
+        this.changeSpeed(speedMultiplier);
+        this.changeScore(scoreMultiplier);
 
         // Tamanho da Hitbox
         this.width = 120;
@@ -133,7 +133,7 @@ public class Boss extends Enemy {
         g.fillRect(bx, by, barW, barH);
 
         g.setColor(Color.RED);
-        int fill = (int)((hp / (double)(baseHP*150)) * barW);
+        int fill = (int)((hp / (baseHP*hpMultiplier)) * barW);
         g.fillRect(bx, by, fill, barH);
 
         g.setColor(Color.WHITE);

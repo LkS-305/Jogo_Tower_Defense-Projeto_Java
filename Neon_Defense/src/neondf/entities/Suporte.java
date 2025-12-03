@@ -13,7 +13,7 @@ public abstract class Suporte {
     protected double x, y;
     protected int level = 0;
     protected int maxLevel = 5;
-    protected int cost = 50;
+    protected int cost = 250;
     protected int range = 100;
 
     // Cor padrão agora é Verde Neon para aspecto de suporte

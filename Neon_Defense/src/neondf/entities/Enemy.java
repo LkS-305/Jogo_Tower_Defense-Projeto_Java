@@ -33,7 +33,7 @@ public class Enemy {
         DIFICIL
     }
     private static dificuldade dificuldadeJogo = dificuldade.NORMAL;
-    protected static int baseDmg = 10, baseHP = 10, baseScore = 100000;
+    protected static int baseDmg = 10, baseHP = 10, baseScore = 50;
     protected static double baseSpeed = 1.0;
 
     // --- CONSTRUTOR 1: DETALHADO (Para Inimigo1, Inimigo2...) ---
@@ -210,10 +210,20 @@ public class Enemy {
             if(this.getHp() <= 0){ this.kill(); }
         }
     }
+
+    public static void incDifWave(){
+        baseScore += 50;
+        baseHP = (int) (1.2 * baseHP);
+    }
+
     public static void upgradeEnemies(){
         baseSpeed = 1.2 * baseSpeed;
-        baseHP = (int) (1.5 * baseHP);
-        baseDmg = (int) (1.5 * baseDmg);
+        baseHP = (2 * baseHP);
+        baseDmg = (int) (1.4 * baseDmg);
         baseScore *= 5;
+    }
+
+    public static void resetEnemyStats(){
+        baseDmg = 10; baseHP = 10; baseScore = 50; baseSpeed = 1.0;
     }
 }

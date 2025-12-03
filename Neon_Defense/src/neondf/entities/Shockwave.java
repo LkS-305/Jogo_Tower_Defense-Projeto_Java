@@ -62,7 +62,7 @@ public class Shockwave {
         g.drawOval(-rInner, -rInner, rInner * 2, rInner * 2);
 
 
-        // --- CAMADA 2: RAIOS ELÉTRICOS "DOIDÕES" ---
+        // --- CAMADA 2: RAIOS ELÉTRICOS DOIDÕES ---
         int numBolts = 12; // Quantidade de raios
         g.setStroke(new BasicStroke(3));
 

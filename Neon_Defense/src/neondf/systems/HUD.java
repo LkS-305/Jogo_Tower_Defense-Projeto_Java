@@ -127,7 +127,7 @@ public class HUD {
             g.setColor(Color.RED);
             g.drawString("[3] Perfuração (MAX)", x+15, rowY + spacing*2);
         }
-        if (tower.getMultiShotLevel() < 7) {
+        if (tower.getMultiShotLevel() < 3) {
             drawUpgradeRow(g, "[4] Multi-Tiro", tower.getCostMultiShot(), tower.getCostMultiShot() <= neonCoins, x+15, rowY + spacing*3);
         } else {
             g.setColor(Color.RED);

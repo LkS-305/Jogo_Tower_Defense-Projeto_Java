@@ -147,7 +147,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
             for (Shockwave sw : shockwaves) {
                 if (sw.collidesWith(e)) {
-                    int dmg = 500;
+                    int dmg = 5*tower.getCurrentDmg();
                     e.takeDamage(dmg);
                     damageTexts.add(new DamageText(e.getX(), e.getY()-20, dmg));
                     if (!e.isAlive()) {
@@ -508,6 +508,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     private void resetGame() {
         bullets.clear();
         enemies.clear();
+        Enemy.resetEnemyStats();
         damageTexts.clear();
         shockwaves.clear();
         tower = new Tower(370, 270);

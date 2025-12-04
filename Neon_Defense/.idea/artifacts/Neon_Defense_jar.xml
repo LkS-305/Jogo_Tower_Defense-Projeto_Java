@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Neon_Defense:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Neon_Defense_jar</output-path>
+    <root id="archive" name="Neon_Defense.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/sprites/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="Neon_Defense" />
+    </root>
+  </artifact>
+</component>

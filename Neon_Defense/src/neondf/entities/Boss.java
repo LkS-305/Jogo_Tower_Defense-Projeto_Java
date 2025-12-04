@@ -10,7 +10,7 @@ public class Boss extends Enemy {
     private double rotateAngleOuter = 0;
     private double rotateAngleInner = 0;
     private double auraAngle = 0; // Nova variável para a aura
-    private final double hpMultiplier = 150.0, dmgMultiplier = 5.0, speedMultiplier = 0.4, scoreMultiplier = 10;
+    private final double hpMultiplier = 150.0, dmgMultiplier = 5.0, speedMultiplier = 0.4, scoreMultiplier = 10.0;
     public Boss(double x, double y) {
         super(x, y);
 

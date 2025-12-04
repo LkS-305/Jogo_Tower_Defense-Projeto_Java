@@ -1,0 +1,21 @@
+
+
+Version:	3.50
+CmdLine:	C:\Users\lucas\OneDrive\Área de Trabalho\PUCC\Período 4\PI_Orientada_Objeto\Projeto_Tower_Defense\Neon_Defense\out\artifacts\Neon_Defense_jar\Neon_Defense.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\lucas\OneDrive\Área de Trabalho\PUCC\Período 4\PI_Orientada_Objeto\Projeto_Tower_Defense\Neon_Defense\out\artifacts\Neon_Defense_jar\.
+Requires JDK:	Yes
+Requires 64-Bit: No
+Java min ver:	1.024.000
+Java max ver:	
+Substitute:	JAVA_HOME = C:\Program Files\Java\jdk-24
+Substitute:	PATH = C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\QuickTime\QTSystem\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Program Files\Java\jdk-24\bin;C:\Users\lucas\AppData\Local\Microsoft\WindowsApps;C:\Users\lucas\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\lucas\AppData\Roaming\npm;C:\Users\lucas\AppData\Local\Microsoft\WindowsApps;C:\Users\lucas\AppData\Local\GitHubDesktop\bin;;C:\Program Files\Java\jdk-24\bin
+JRE paths:	C:\Program Files\Java\jdk-24;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\QuickTime\QTSystem\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Program Files\Java\jdk-24\bin;C:\Users\lucas\AppData\Local\Microsoft\WindowsApps;C:\Users\lucas\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\lucas\AppData\Roaming\npm;C:\Users\lucas\AppData\Local\Microsoft\WindowsApps;C:\Users\lucas\AppData\Local\GitHubDesktop\bin;;C:\Program Files\Java\jdk-24\bin
+Check launcher:	C:\Program Files\Java\jdk-24\bin\javaw.exe (OK)
+Check javac:	C:\Program Files\Java\jdk-24\bin\javac.exe (OK)
+Version string: 1.024.000_002 / 64-Bit (OK)
+Launcher:	C:\Program Files\Java\jdk-24\bin\javaw.exe
+Launcher args:	-jar "C:\Users\lucas\OneDrive\Área de Trabalho\PUCC\Período 4\PI_Orientada_Objeto\Projeto_Tower_Defense\Neon_Defense\out\artifacts\Neon_Defense_jar\Neon_Defense.exe"
+Args length:	165/32768 chars
+Exit code:	0

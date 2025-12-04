@@ -32,8 +32,5 @@ public class Window {
         // Registra o listener de mouse DIRETAMENTE NA JANELA
         InputHandler handler = new InputHandler(game.getTower(), game);
         frame.addMouseMotionListener(handler);
-
-        // Inicia o loop do jogo
-        game.start();
     }
 }
